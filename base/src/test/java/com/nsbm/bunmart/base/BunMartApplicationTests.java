@@ -1,4 +1,4 @@
-package com.example.bunmart;
+package com.nsbm.bunmart.base;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
