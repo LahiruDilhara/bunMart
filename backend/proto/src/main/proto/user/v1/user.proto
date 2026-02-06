@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package bunmart.user.v1;
+
+option java_package = "com.nsbm.bunmart.user.v1";
+option java_multiple_files = true;
+
+// UserService — users and addresses. Consumed by Order, Cart, Notification, Shipping. Payment does not call User.
+service UserService {
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+  rpc GetUserAddresses(GetUserAddressesRequest) returns (GetUserAddressesResponse);
+  rpc ValidateUser(ValidateUserRequest) returns (ValidateUserResponse);
+}
+
+message UserInfo {
+  string user_id = 1;
+  string email = 2;
+  string display_name = 3;
+  repeated string roles = 4;
+}
+
+message AddressInfo {
+  string address_id = 1;
+  string user_id = 2;
+  string line1 = 3;
+  string line2 = 4;
+  string city = 5;
+  string state = 6;
+  string postal_code = 7;
+  string country = 8;
+  string type = 9;  // SHIPPING, BILLING
+}
+
+message GetUserRequest {
+  string user_id = 1;
+}
+
+message GetUserResponse {
+  UserInfo user = 1;
+}
+
+message GetUserAddressesRequest {
+  string user_id = 1;
+}
+
+message GetUserAddressesResponse {
+  repeated AddressInfo addresses = 1;
+}
+
+message ValidateUserRequest {
+  string user_id = 1;
+}
+
+message ValidateUserResponse {
+  bool valid = 1;
+  UserInfo user = 2;
+}

@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+package bunmart.pricing.v1;
+
+option java_package = "com.nsbm.bunmart.pricing.v1";
+option java_multiple_files = true;
+
+// PricingService — prices and order-level pricing. Consumed by Order only (on order page).
+service PricingService {
+  rpc GetPrices(GetPricesRequest) returns (GetPricesResponse);
+  rpc GetDiscounts(GetDiscountsRequest) returns (GetDiscountsResponse);
+  rpc CalculatePrice(CalculatePriceRequest) returns (CalculatePriceResponse);
+  rpc CalculateOrderPricing(CalculateOrderPricingRequest) returns (CalculateOrderPricingResponse);
+}
+
+message PriceInfo {
+  string product_id = 1;
+  string unit_price = 2;
+  string currency_code = 3;
+}
+
+message DiscountInfo {
+  string discount_id = 1;
+  string product_id = 2;
+  string type = 3;
+  string value = 4;
+  string description = 5;
+}
+
+message GetPricesRequest {
+  repeated string product_ids = 1;
+}
+
+message GetPricesResponse {
+  repeated PriceInfo prices = 1;
+}
+
+message GetDiscountsRequest {
+  repeated string product_ids = 1;
+  string user_id = 2;
+  string coupon_code = 3;
+}
+
+message GetDiscountsResponse {
+  repeated DiscountInfo discounts = 1;
+}
+
+message CalculatePriceRequest {
+  string product_id = 1;
+  int32 quantity = 2;
+  string coupon_code = 3;
+  string user_id = 4;
+}
+
+message CalculatePriceResponse {
+  string product_id = 1;
+  int32 quantity = 2;
+  string unit_price = 3;
+  string subtotal = 4;
+  string discount_amount = 5;
+  string discount_description = 6;
+  string total = 7;
+  string currency_code = 8;
+  bool coupon_applied = 9;
+}
+
+message CalculateOrderPricingRequest {
+  string user_id = 1;
+  message LineItem {
+    string product_id = 1;
+    int32 quantity = 2;
+  }
+  repeated LineItem items = 2;
+  repeated string coupon_codes = 3;
+}
+
+message CalculateOrderPricingResponse {
+  message LineResult {
+    string product_id = 1;
+    int32 quantity = 2;
+    string unit_price = 3;
+    string line_total = 4;
+  }
+  repeated LineResult lines = 1;
+  string subtotal = 2;
+  string discount_total = 3;
+  string total = 4;
+  string currency_code = 5;
+}

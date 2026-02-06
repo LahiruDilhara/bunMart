@@ -1,0 +1,125 @@
+syntax = "proto3";
+
+package bunmart.order.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option java_package = "com.nsbm.bunmart.order.v1";
+option java_multiple_files = true;
+
+// OrderService — order intents and full orders. Cart calls CreateOrderIntent; Kitchen calls NotifyOrderPrepared; Shipping calls SetOrderShipping.
+service OrderService {
+  rpc CreateOrderIntent(CreateOrderIntentRequest) returns (CreateOrderIntentResponse);
+  rpc GetOrder(GetOrderRequest) returns (GetOrderResponse);
+  rpc GetOrderStatus(GetOrderStatusRequest) returns (GetOrderStatusResponse);
+  rpc UpdateOrderWithDetails(UpdateOrderWithDetailsRequest) returns (UpdateOrderWithDetailsResponse);
+  rpc RequestPaymentIntent(RequestPaymentIntentRequest) returns (RequestPaymentIntentResponse);
+  // Callbacks from other services:
+  rpc NotifyOrderPrepared(NotifyOrderPreparedRequest) returns (NotifyOrderPreparedResponse);
+  rpc SetOrderShipping(SetOrderShippingRequest) returns (SetOrderShippingResponse);
+  rpc NotifyPaymentResult(NotifyPaymentResultRequest) returns (NotifyPaymentResultResponse);
+}
+
+message OrderLineInfo {
+  string product_id = 1;
+  int32 quantity = 2;
+  string unit_price = 3;
+  string line_total = 4;
+}
+
+message OrderInfo {
+  string order_id = 1;
+  string user_id = 2;
+  string status = 3;
+  repeated OrderLineInfo lines = 4;
+  string subtotal = 5;
+  string discount_total = 6;
+  string shipping_total = 7;
+  string total = 8;
+  string currency_code = 9;
+  string shipping_address_id = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+}
+
+message GetOrderRequest {
+  string order_id = 1;
+}
+
+message GetOrderResponse {
+  OrderInfo order = 1;
+}
+
+message GetOrderStatusRequest {
+  string order_id = 1;
+}
+
+message GetOrderStatusResponse {
+  string order_id = 1;
+  string status = 2;
+  google.protobuf.Timestamp updated_at = 3;
+}
+
+message CreateOrderIntentRequest {
+  string user_id = 1;
+  message CartLine {
+    string product_id = 1;
+    int32 quantity = 2;
+  }
+  repeated CartLine items = 2;
+  string cart_id = 3;
+}
+
+message CreateOrderIntentResponse {
+  string order_id = 1;
+}
+
+message UpdateOrderWithDetailsRequest {
+  string order_id = 1;
+  repeated string coupon_codes = 2;
+  string address_id = 3;
+}
+
+message UpdateOrderWithDetailsResponse {
+  OrderInfo order = 1;
+}
+
+message RequestPaymentIntentRequest {
+  string order_id = 1;
+}
+
+message RequestPaymentIntentResponse {
+  string payment_intent_id = 1;
+}
+
+// Kitchen calls when production is completed.
+message NotifyOrderPreparedRequest {
+  string production_order_id = 1;
+  string user_order_id = 2;
+}
+
+message NotifyOrderPreparedResponse {
+  bool acknowledged = 1;
+}
+
+// Shipping calls when admin/driver submit shipping details.
+message SetOrderShippingRequest {
+  string shipment_id = 1;
+  string order_id = 2;
+  string status = 3;
+}
+
+message SetOrderShippingResponse {
+  bool updated = 1;
+}
+
+// Payment calls after Stripe webhook so Order can set status to paid without polling.
+message NotifyPaymentResultRequest {
+  string order_id = 1;
+  string payment_id = 2;
+  string status = 3;  // SUCCEEDED, FAILED
+}
+
+message NotifyPaymentResultResponse {
+  bool acknowledged = 1;
+}

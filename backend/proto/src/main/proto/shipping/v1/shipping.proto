@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package bunmart.shipping.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option java_package = "com.nsbm.bunmart.shipping.v1";
+option java_multiple_files = true;
+
+// ShippingService — shipments. Order calls CreateShipment; Shipping calls Order.SetOrderShipping when details submitted.
+service ShippingService {
+  rpc CreateShipment(CreateShipmentRequest) returns (CreateShipmentResponse);
+  rpc GetShipmentStatus(GetShipmentStatusRequest) returns (GetShipmentStatusResponse);
+  rpc UpdateShipmentStatus(UpdateShipmentStatusRequest) returns (UpdateShipmentStatusResponse);
+}
+
+message CreateShipmentRequest {
+  string order_id = 1;
+  string user_id = 2;
+  string shipping_address_id = 3;
+  repeated string product_ids = 4;
+  string carrier = 5;
+}
+
+message CreateShipmentResponse {
+  string shipment_id = 1;
+  string tracking_number = 2;
+  string status = 3;
+}
+
+message GetShipmentStatusRequest {
+  string shipment_id = 1;
+}
+
+message GetShipmentStatusResponse {
+  string shipment_id = 1;
+  string order_id = 2;
+  string tracking_number = 3;
+  string status = 4;
+  google.protobuf.Timestamp estimated_delivery = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+message UpdateShipmentStatusRequest {
+  string shipment_id = 1;
+  string status = 2;
+}
+
+message UpdateShipmentStatusResponse {
+  bool updated = 1;
+}

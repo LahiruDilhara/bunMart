@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package bunmart.notification.v1;
+
+option java_package = "com.nsbm.bunmart.notification.v1";
+option java_multiple_files = true;
+
+// NotificationService — send notifications. Called by Order, Payment, Shipping, User Management.
+service NotificationService {
+  rpc SendNotification(SendNotificationRequest) returns (SendNotificationResponse);
+}
+
+message SendNotificationRequest {
+  string user_id = 1;
+  string channel = 2;  // EMAIL, SMS, IN_APP
+  string template_id = 3;
+  map<string, string> template_data = 4;
+  string subject = 5;
+  string reference_type = 6; // Which service sends this
+  string reference_id = 7; // in that service's reference id
+}
+
+message SendNotificationResponse {
+  string notification_id = 1;
+  string status = 2;  // SENT, QUEUED, FAILED
+}

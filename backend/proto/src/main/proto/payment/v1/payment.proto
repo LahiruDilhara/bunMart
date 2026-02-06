@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package bunmart.payment.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option java_package = "com.nsbm.bunmart.payment.v1";
+option java_multiple_files = true;
+
+// PaymentService — payment intents (Stripe). Order calls CreatePaymentIntent; Payment may call Notification.
+service PaymentService {
+  rpc CreatePaymentIntent(CreatePaymentIntentRequest) returns (CreatePaymentIntentResponse);
+  rpc GetPaymentIntent(GetPaymentIntentRequest) returns (GetPaymentIntentResponse);
+  rpc GetPaymentStatus(GetPaymentStatusRequest) returns (GetPaymentStatusResponse);
+  rpc ConfirmPayment(ConfirmPaymentRequest) returns (ConfirmPaymentResponse);
+}
+
+message CreatePaymentIntentRequest {
+  string order_id = 1;
+  string amount = 2;
+  string currency_code = 3;
+  string user_id = 4;
+  string order_name = 5;
+  map<string, string> metadata = 6;
+}
+
+message CreatePaymentIntentResponse {
+  string payment_id = 1;
+  string client_secret = 2;
+  string status = 3;
+}
+
+message GetPaymentIntentRequest {
+  string payment_id = 1;
+}
+
+message GetPaymentIntentResponse {
+  string payment_id = 1;
+  string client_secret = 2;
+  string status = 3;
+}
+
+message GetPaymentStatusRequest {
+  string payment_id = 1;
+}
+
+message GetPaymentStatusResponse {
+  string payment_id = 1;
+  string status = 2;
+  string order_id = 3;
+  google.protobuf.Timestamp updated_at = 4;
+}
+
+message ConfirmPaymentRequest {
+  string payment_id = 1;
+}
+
+message ConfirmPaymentResponse {
+  bool success = 1;
+  string status = 2;
+}

@@ -1,0 +1,60 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'com.google.protobuf' version "0.9.6"
+}
+
+group = 'com.nsbm.bunmart'
+version = '0.0.1'
+description = 'BunMart gRPC proto definitions and generated Java stubs'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+    withSourcesJar()
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'io.grpc:grpc-stub:1.79.0'
+    implementation 'io.grpc:grpc-protobuf:1.79.0'
+    implementation 'com.google.protobuf:protobuf-java:4.33.5'
+    implementation 'jakarta.annotation:jakarta.annotation-api:3.0.0'
+    compileOnly 'javax.annotation:javax.annotation-api:1.3.2'
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.25.1"
+    }
+    plugins {
+        grpc {
+            artifact = "io.grpc:protoc-gen-grpc-java:1.62.2"
+        }
+    }
+    generateProtoTasks {
+        all()*.plugins {
+            grpc {}
+        }
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+            artifactId = 'bunmart-proto'
+            pom {
+                name = 'BunMart Proto'
+                description = 'Shared gRPC proto definitions and generated Java/Stub code for BunMart microservices'
+            }
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
+}

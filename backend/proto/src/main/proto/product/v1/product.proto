@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package bunmart.product.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option java_package = "com.nsbm.bunmart.product.v1";
+option java_multiple_files = true;
+
+// ProductCatalogService — product and category data. Consumed by Cart, Order, Review, Pricing.
+service ProductCatalogService {
+  rpc GetProduct(GetProductRequest) returns (GetProductResponse);
+  rpc GetProducts(GetProductsRequest) returns (GetProductsResponse);
+  rpc ValidateProducts(ValidateProductsRequest) returns (ValidateProductsResponse);
+}
+
+message ProductInfo {
+  string product_id = 1;
+  string name = 2;
+  string description = 3;
+  string category_id = 4;
+  repeated string tag_ids = 5;
+  string image_url = 6;
+  repeated string image_urls = 7;
+  google.protobuf.Timestamp created_at = 8;
+  google.protobuf.Timestamp updated_at = 9;
+}
+
+message CategoryInfo {
+  string category_id = 1;
+  string name = 2;
+  int32 sort_order = 3;
+}
+
+message GetProductRequest {
+  string product_id = 1;
+}
+
+message GetProductResponse {
+  ProductInfo product = 1;
+}
+
+message GetProductsRequest {
+  repeated string product_ids = 1;
+}
+
+message GetProductsResponse {
+  repeated ProductInfo products = 1;
+}
+
+message ValidateProductsRequest {
+  repeated string product_ids = 1;
+}
+
+message ValidateProductsResponse {
+  repeated string valid_product_ids = 1;
+}
