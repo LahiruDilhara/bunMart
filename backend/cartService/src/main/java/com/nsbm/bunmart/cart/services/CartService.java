@@ -44,7 +44,9 @@ public class CartService {
 
     private void createCartIfNotExists(String userId) throws DatabaseException {
         try{
+            log.info("createCartIfNotExists userId:{}",userId);
             boolean exists = cartRepository.existsByUserId(userId);
+            log.info("cart exists: {}", exists);
             if (!exists){
                 Cart cart = new Cart();
                 cart.setUserId(userId);
@@ -53,5 +55,9 @@ public class CartService {
         } catch (Exception e) {
             throw new DatabaseException("Error while creating cart for id: " + userId);
         }
+    }
+
+    public Cart getCart(String userId) {
+        return cartRepository.findByUserId(userId).orElseThrow(() -> new CartNotExists(userId));
     }
 }

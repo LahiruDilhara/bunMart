@@ -5,6 +5,7 @@ import com.nsbm.bunmart.cart.model.CartItem;
 import com.nsbm.bunmart.cart.v1.AddCartItemResponse;
 import com.nsbm.bunmart.cart.v1.CartInfo;
 import com.nsbm.bunmart.cart.v1.CartItemInfo;
+import com.nsbm.bunmart.cart.v1.GetCartResponse;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -37,4 +38,10 @@ public class GRPCMapper {
                 .build();
     }
 
+
+    public GetCartResponse CartToGetCartResponse(Cart cart){
+        return GetCartResponse.newBuilder()
+                .setCart(cartInfoFromCart(cart))
+                .build();
+    }
 }

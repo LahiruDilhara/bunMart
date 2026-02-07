@@ -23,37 +23,21 @@ public class GrpcController extends CartServiceGrpc.CartServiceImplBase {
 
     @Override
     public void getCart(GetCartRequest request, StreamObserver<GetCartResponse> responseObserver) {
-        // Create some dummy CartItemInfo
-        CartItemInfo item1 = CartItemInfo.newBuilder()
-                .setProductId("P001")
-                .setQuantity(2)
-                .build();
-
-        CartItemInfo item2 = CartItemInfo.newBuilder()
-                .setProductId("P002")
-                .setQuantity(1)
-                .build();
-
-        // Create dummy CartInfo
-        CartInfo cartInfo = CartInfo.newBuilder()
-                .setCartId("CART123")
-                .setUserId(request.getUserId())  // echo request userId for test
-                .addItems(item1)
-                .addItems(item2)
-                .setTotal("5")
-                .build();
-
-        // Build GetCartResponse
-        GetCartResponse response = GetCartResponse.newBuilder()
-                .setCart(cartInfo)
-                .build();
-
-        // Send response
-        responseObserver.onNext(response);
-
-        // Complete the RPC
-        responseObserver.onCompleted();
-        log.info("getCart response: {}", response);
+        String userId = request.getUserId();
+        try{
+            com.nsbm.bunmart.cart.model.Cart cart = cartService.getCart(userId);
+            responseObserver.onNext(grpcMapper.CartToGetCartResponse(cart));
+            responseObserver.onCompleted();
+        }
+        catch (CartNotExists cartNotExists){
+            log.error("Cart not exists for userId:{}",userId,cartNotExists);
+            responseObserver.onError(new Exception("The cart does not exist"));
+            return;
+        }
+        catch (Exception e){
+            log.error("Error occurred while get cart for userId:{}",userId,e);
+            responseObserver.onError(new Exception("System error"));
+        }
     }
 
     @Override
