@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 public class CartService {
 
@@ -26,6 +27,7 @@ public class CartService {
         CartItem cartItem = new CartItem();
         cartItem.setProductId(productId);
         cartItem.setQuantity(quantity);
+        cartItem.setCart(cart);
 
         List<CartItem> cartItems = cart.getCartItems();
         cartItems.add(cartItem);
@@ -35,6 +37,7 @@ public class CartService {
             return cartRepository.save(cart);
         }
         catch (Exception e){
+            log.error("addCartItem cart item info: {}", cart);
             throw new DatabaseException(e.getMessage());
         }
     }
@@ -45,6 +48,7 @@ public class CartService {
             if (!exists){
                 Cart cart = new Cart();
                 cart.setUserId(userId);
+                cartRepository.save(cart);
             }
         } catch (Exception e) {
             throw new DatabaseException("Error while creating cart for id: " + userId);

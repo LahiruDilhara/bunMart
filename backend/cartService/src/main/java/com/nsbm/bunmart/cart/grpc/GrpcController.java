@@ -61,9 +61,11 @@ public class GrpcController extends CartServiceGrpc.CartServiceImplBase {
         try{
             com.nsbm.bunmart.cart.model.Cart cart = cartService.addCartItem(request.getUserId(),request.getProductId(),request.getQuantity());
             responseObserver.onNext(grpcMapper.cartToAddCartItemResponse(cart));
+            responseObserver.onCompleted();
             return;
         }
         catch(CartNotExists | DatabaseException e){
+            log.error(e.getMessage());
             responseObserver.onError(e);
         }
         catch (Exception e) {
