@@ -1,5 +1,9 @@
 package com.nsbm.bunmart.cart.grpc;
 
+import com.nsbm.bunmart.cart.errors.CartNotExists;
+import com.nsbm.bunmart.cart.errors.DatabaseException;
+import com.nsbm.bunmart.cart.mappers.grpc.GRPCMapper;
+import com.nsbm.bunmart.cart.services.CartService;
 import com.nsbm.bunmart.cart.v1.*;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +12,14 @@ import net.devh.boot.grpc.server.service.GrpcService;
 @Slf4j
 @GrpcService
 public class GrpcController extends CartServiceGrpc.CartServiceImplBase {
+
+    private final CartService cartService;
+    private final GRPCMapper  grpcMapper;
+
+    public  GrpcController(CartService cartService, GRPCMapper grpcMapper) {
+        this.cartService = cartService;
+        this.grpcMapper = grpcMapper;
+    }
 
     @Override
     public void getCart(GetCartRequest request, StreamObserver<GetCartResponse> responseObserver) {
@@ -46,7 +58,17 @@ public class GrpcController extends CartServiceGrpc.CartServiceImplBase {
 
     @Override
     public void addCartItem(AddCartItemRequest request, StreamObserver<AddCartItemResponse> responseObserver) {
-        super.addCartItem(request, responseObserver);
+        try{
+            com.nsbm.bunmart.cart.model.Cart cart = cartService.addCartItem(request.getUserId(),request.getProductId(),request.getQuantity());
+            responseObserver.onNext(grpcMapper.cartToAddCartItemResponse(cart));
+            return;
+        }
+        catch(CartNotExists | DatabaseException e){
+            responseObserver.onError(e);
+        }
+        catch (Exception e) {
+            log.error("addCartItem error",e);
+        }
     }
 
     @Override

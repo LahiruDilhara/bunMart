@@ -19,7 +19,7 @@ public class CartService {
         this.cartRepository = cartRepository;
     }
 
-    public Cart addCartItem(String userId, String productId, int quantity){
+    public Cart addCartItem(String userId, String productId, int quantity) throws CartNotExists, DatabaseException{
         createCartIfNotExists(userId);
         Cart cart = cartRepository.findByUserId(userId).orElseThrow(()-> new CartNotExists(userId));
 
