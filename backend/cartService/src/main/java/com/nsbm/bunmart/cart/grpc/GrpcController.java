@@ -5,6 +5,7 @@ import com.nsbm.bunmart.cart.errors.DatabaseException;
 import com.nsbm.bunmart.cart.mappers.grpc.GRPCMapper;
 import com.nsbm.bunmart.cart.services.CartService;
 import com.nsbm.bunmart.cart.v1.*;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.server.service.GrpcService;
@@ -31,12 +32,12 @@ public class GrpcController extends CartServiceGrpc.CartServiceImplBase {
         }
         catch (CartNotExists cartNotExists){
             log.error("Cart not exists for userId:{}",userId,cartNotExists);
-            responseObserver.onError(new Exception("The cart does not exist"));
+            responseObserver.onError(Status.INTERNAL.withDescription("Cart not exists").asRuntimeException());
             return;
         }
         catch (Exception e){
             log.error("Error occurred while get cart for userId:{}",userId,e);
-            responseObserver.onError(new Exception("System error"));
+            responseObserver.onError(Status.INTERNAL.withDescription("System error").asRuntimeException());
         }
     }
 
@@ -48,12 +49,19 @@ public class GrpcController extends CartServiceGrpc.CartServiceImplBase {
             responseObserver.onCompleted();
             return;
         }
-        catch(CartNotExists | DatabaseException e){
+        catch(CartNotExists e){
             log.error(e.getMessage());
             responseObserver.onError(e);
+            responseObserver.onError(Status.INTERNAL.withDescription("Cart not exists").asRuntimeException());
+            return;
+        }
+        catch(DatabaseException e){
+            log.error(e.getMessage());
+            responseObserver.onError(Status.INTERNAL.withDescription("System error").asRuntimeException());
         }
         catch (Exception e) {
             log.error("addCartItem error",e);
+            responseObserver.onError(Status.INTERNAL.withDescription("System error").asRuntimeException());
         }
     }
 
