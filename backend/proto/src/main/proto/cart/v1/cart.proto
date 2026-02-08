@@ -9,7 +9,6 @@ option java_multiple_files = true;
 service CartService {
   rpc GetCart(GetCartRequest) returns (GetCartResponse);
   rpc AddCartItem(AddCartItemRequest) returns (AddCartItemResponse);
-  rpc GetCartForCheckout(GetCartForCheckoutRequest) returns (GetCartForCheckoutResponse);
   rpc InvalidateCart(InvalidateCartRequest) returns (InvalidateCartResponse);
 }
 
@@ -28,7 +27,6 @@ message CartInfo {
 
 message GetCartRequest {
   string user_id = 1;
-  string session_id = 2;
 }
 
 message GetCartResponse {
@@ -40,7 +38,6 @@ message AddCartItemRequest {
   string user_id = 1;
   string product_id = 2;
   int32 quantity = 3;
-  string session_id = 5; // optional; for anonymous/session-based cart
 }
 
 message AddCartItemResponse {
@@ -48,20 +45,8 @@ message AddCartItemResponse {
   CartInfo cart = 2; // updated cart after add
 }
 
-message GetCartForCheckoutRequest {
-  string user_id = 1;
-  string session_id = 2;
-}
-
-message GetCartForCheckoutResponse {
-  CartInfo cart = 1;
-  bool valid = 2;
-  repeated string errors = 3;
-}
-
 message InvalidateCartRequest {
-  string cart_id = 1;
-  string order_id = 2;
+  string user_id = 1;
   repeated string product_ids = 3;
 }
 

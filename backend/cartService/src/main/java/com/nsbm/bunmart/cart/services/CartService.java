@@ -60,4 +60,18 @@ public class CartService {
     public Cart getCart(String userId) {
         return cartRepository.findByUserId(userId).orElseThrow(() -> new CartNotExists(userId));
     }
+
+    public void RemoveCartItems(String userId, List<String> productIds){
+        try{
+            Cart cart =  cartRepository.findByUserId(userId).orElseThrow(() -> new CartNotExists(userId));
+            List<CartItem> cartItems = cart.getCartItems();
+            cartItems.removeIf(cartItem -> productIds.contains(cartItem.getProductId()));
+            cart.setCartItems(cartItems);
+            cartRepository.save(cart);
+        }
+        catch (Exception e){
+            log.error("removeCartItems error: {}", e.getMessage());
+            throw new DatabaseException(e.getMessage());
+        }
+    }
 }

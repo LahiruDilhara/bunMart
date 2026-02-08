@@ -51,7 +51,6 @@ public class GrpcController extends CartServiceGrpc.CartServiceImplBase {
         }
         catch(CartNotExists e){
             log.error(e.getMessage());
-            responseObserver.onError(e);
             responseObserver.onError(Status.INTERNAL.withDescription("Cart not exists").asRuntimeException());
             return;
         }
@@ -66,12 +65,21 @@ public class GrpcController extends CartServiceGrpc.CartServiceImplBase {
     }
 
     @Override
-    public void getCartForCheckout(GetCartForCheckoutRequest request, StreamObserver<GetCartForCheckoutResponse> responseObserver) {
-        super.getCartForCheckout(request, responseObserver);
-    }
-
-    @Override
     public void invalidateCart(InvalidateCartRequest request, StreamObserver<InvalidateCartResponse> responseObserver) {
-        super.invalidateCart(request, responseObserver);
+        try{
+            cartService.RemoveCartItems(request.getUserId(),request.getProductIdsList());
+        }
+        catch(CartNotExists e){
+            log.error(e.getMessage());
+            responseObserver.onError(Status.INTERNAL.withDescription("Cart not exists").asRuntimeException());
+        }
+        catch(DatabaseException e){
+            log.error(e.getMessage());
+            responseObserver.onError(Status.INTERNAL.withDescription("System error").asRuntimeException());
+        }
+        catch (Exception e) {
+            log.error("invalidateCart error",e);
+            responseObserver.onError(Status.INTERNAL.withDescription("System error").asRuntimeException());
+        }
     }
 }
