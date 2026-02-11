@@ -87,4 +87,24 @@ public class CartController {
             return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+
+    @PatchMapping("/item/{itemId}")
+    public ResponseEntity<CartResponseDTO> updateCartItem(@RequestParam String userId,@RequestParam int quantity,@PathVariable int itemId){
+        try {
+            Cart cart = cartService.UpdateCartItem(userId,itemId,quantity);
+            return ResponseEntity.status(HttpStatus.OK).body(cartMapper.cartToCartResponseDTO(cart));
+        }
+        catch (CartItemNotExists e) {
+            log.error(e.getMessage());
+            return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        catch (DatabaseException e){
+            log.error(e.getMessage());
+            return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+        catch (Exception e) {
+            log.error("invalidateCart error",e);
+            return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
 }

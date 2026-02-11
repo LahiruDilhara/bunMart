@@ -104,4 +104,23 @@ public class CartService {
             throw new DatabaseException(e.getMessage());
         }
     }
+
+    public Cart UpdateCartItem(String userId, int cartItemId, int quantity){
+        try{
+            Cart cart = cartRepository.findByUserId(userId).orElseThrow(() -> new CartNotExists(userId));
+            CartItem cartItem = cart.getCartItems()
+                    .stream()
+                    .filter(item -> item.getId() == cartItemId)
+                    .findFirst()
+                    .orElseThrow(() ->
+                            new CartItemNotExists("CartItem not exists for id: " + cartItemId)
+                    );
+            cartItem.setQuantity(quantity);
+            return cartRepository.save(cart);
+        }
+        catch (Exception e){
+            log.error("updateCartItem error: {}", e.getMessage());
+            throw new DatabaseException(e.getMessage());
+        }
+    }
 }
