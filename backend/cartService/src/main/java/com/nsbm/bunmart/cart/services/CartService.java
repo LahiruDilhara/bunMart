@@ -64,8 +64,8 @@ public class CartService {
     }
 
     public void RemoveCartItems(String userId, List<String> productIds){
+        Cart cart =  cartRepository.findByUserId(userId).orElseThrow(() -> new CartNotExists(userId));
         try{
-            Cart cart =  cartRepository.findByUserId(userId).orElseThrow(() -> new CartNotExists(userId));
             List<CartItem> cartItems = cart.getCartItems();
             cartItems.removeIf(cartItem -> productIds.contains(cartItem.getProductId()));
             cart.setCartItems(cartItems);
@@ -73,13 +73,13 @@ public class CartService {
         }
         catch (Exception e){
             log.error("removeCartItems error: {}", e.getMessage());
-            throw new DatabaseException(e.getMessage());
+            throw e;
         }
     }
 
     public void RemoveCartItem(String userId, int cartItemId){
+        Cart cart = cartRepository.findByUserId(userId).orElseThrow(() -> new CartNotExists(userId));
         try{
-            Cart cart = cartRepository.findByUserId(userId).orElseThrow(() -> new CartNotExists(userId));
             List<CartItem> cartItems = cart.getCartItems();
             if(cartItems.stream().noneMatch(cartItem -> cartItem.getId() == cartItemId)){
                 throw new CartItemNotExists("CartItem not exists for id: " + cartItemId);
@@ -89,25 +89,25 @@ public class CartService {
         }
         catch (Exception e){
             log.error("removeCartItem error: {}", e.getMessage());
-            throw new DatabaseException(e.getMessage());
+            throw e;
         }
     }
 
     public void ClearCart(String userId){
+        Cart cart = cartRepository.findByUserId(userId).orElseThrow(() -> new CartNotExists(userId));
         try{
-            Cart cart = cartRepository.findByUserId(userId).orElseThrow(() -> new CartNotExists(userId));
             cart.setCartItems(new ArrayList<>());
             cartRepository.save(cart);
         }
         catch (Exception e){
             log.error("clearCart error: {}", e.getMessage());
-            throw new DatabaseException(e.getMessage());
+            throw e;
         }
     }
 
     public Cart UpdateCartItem(String userId, int cartItemId, int quantity){
+        Cart cart = cartRepository.findByUserId(userId).orElseThrow(() -> new CartNotExists(userId));
         try{
-            Cart cart = cartRepository.findByUserId(userId).orElseThrow(() -> new CartNotExists(userId));
             CartItem cartItem = cart.getCartItems()
                     .stream()
                     .filter(item -> item.getId() == cartItemId)
@@ -120,7 +120,25 @@ public class CartService {
         }
         catch (Exception e){
             log.error("updateCartItem error: {}", e.getMessage());
-            throw new DatabaseException(e.getMessage());
+            throw e;
+        }
+    }
+
+    public Cart AddCartItem(String userId, int quantity, String productId){
+        Cart cart = cartRepository.findByUserId(userId).orElseThrow(() -> new CartNotExists(userId));
+        try{
+            CartItem cartItem = new CartItem();
+            cartItem.setProductId(productId);
+            cartItem.setQuantity(quantity);
+            cartItem.setCart(cart);
+            List<CartItem> cartItems = cart.getCartItems();
+            cartItems.add(cartItem);
+            cart.setCartItems(cartItems);
+            return cartRepository.save(cart);
+        }
+        catch (Exception e){
+            log.error("addCartItem error: {}", e.getMessage());
+            throw e;
         }
     }
 }
