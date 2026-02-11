@@ -1,5 +1,6 @@
 package com.nsbm.bunmart.cart.services;
 
+import com.nsbm.bunmart.cart.errors.CartItemNotExists;
 import com.nsbm.bunmart.cart.errors.CartNotExists;
 import com.nsbm.bunmart.cart.errors.DatabaseException;
 import com.nsbm.bunmart.cart.model.Cart;
@@ -8,6 +9,7 @@ import com.nsbm.bunmart.cart.repositories.CartRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -71,6 +73,34 @@ public class CartService {
         }
         catch (Exception e){
             log.error("removeCartItems error: {}", e.getMessage());
+            throw new DatabaseException(e.getMessage());
+        }
+    }
+
+    public void RemoveCartItem(String userId, int cartItemId){
+        try{
+            Cart cart = cartRepository.findByUserId(userId).orElseThrow(() -> new CartNotExists(userId));
+            List<CartItem> cartItems = cart.getCartItems();
+            if(cartItems.stream().noneMatch(cartItem -> cartItem.getId() == cartItemId)){
+                throw new CartItemNotExists("CartItem not exists for id: " + cartItemId);
+            }
+            cartItems.removeIf(cartItem -> cartItem.getId() == cartItemId);
+            cart.setCartItems(cartItems);
+        }
+        catch (Exception e){
+            log.error("removeCartItem error: {}", e.getMessage());
+            throw new DatabaseException(e.getMessage());
+        }
+    }
+
+    public void ClearCart(String userId){
+        try{
+            Cart cart = cartRepository.findByUserId(userId).orElseThrow(() -> new CartNotExists(userId));
+            cart.setCartItems(new ArrayList<>());
+            cartRepository.save(cart);
+        }
+        catch (Exception e){
+            log.error("clearCart error: {}", e.getMessage());
             throw new DatabaseException(e.getMessage());
         }
     }
