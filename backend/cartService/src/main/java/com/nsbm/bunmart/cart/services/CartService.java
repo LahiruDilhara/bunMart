@@ -141,4 +141,15 @@ public class CartService {
             throw e;
         }
     }
+
+    public String checkout(String userId, List<Integer> itemIds){
+        Cart cart = cartRepository.findByUserId(userId).orElseThrow(() -> new CartNotExists(userId));
+        try{
+            List<CartItem> cartItems = cart.getCartItems();
+            List<CartItem> checkoutItems = cartItems.stream().filter(cartItem -> itemIds.contains(cartItem.getId())).toList();
+            List<CartItem> remainItems =  cartItems.stream().filter(cartItem -> !itemIds.contains(cartItem.getId())).toList();
+
+
+        }
+    }
 }

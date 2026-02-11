@@ -1,12 +1,14 @@
 package com.nsbm.bunmart.cart.controller;
 
 import com.nsbm.bunmart.cart.dto.CartResponseDTO;
+import com.nsbm.bunmart.cart.dto.CheckoutRequestDTO;
 import com.nsbm.bunmart.cart.errors.CartItemNotExists;
 import com.nsbm.bunmart.cart.errors.CartNotExists;
 import com.nsbm.bunmart.cart.errors.DatabaseException;
 import com.nsbm.bunmart.cart.mappers.rest.CartMapper;
 import com.nsbm.bunmart.cart.model.Cart;
 import com.nsbm.bunmart.cart.services.CartService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -123,5 +125,10 @@ public class CartController {
             log.error("invalidateCart error",e);
             return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
+    }
+
+    @PostMapping("checkout")
+    public ResponseEntity<CartResponseDTO> checkout(@RequestParam String userId, @Valid @RequestBody CheckoutRequestDTO checkoutRequestDTO){
+
     }
 }

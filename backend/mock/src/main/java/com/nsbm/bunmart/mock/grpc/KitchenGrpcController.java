@@ -38,6 +38,7 @@ public class KitchenGrpcController extends KitchenServiceGrpc.KitchenServiceImpl
                 .addLines(line)
                 .setPhase("BAKING")
                 .setProgressPercent(50)
+                .addPreparationImageUrls("/prep/mock-1.jpg")
                 .setNotes("Mock kitchen order")
                 .setCreatedAt(now())
                 .setUpdatedAt(now())

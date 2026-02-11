@@ -55,30 +55,9 @@ public class CartGrpcController extends CartServiceGrpc.CartServiceImplBase {
     }
 
     @Override
-    public void getCartForCheckout(GetCartForCheckoutRequest request, StreamObserver<GetCartForCheckoutResponse> responseObserver) {
-        CartItemInfo item = CartItemInfo.newBuilder()
-                .setCartItemId("item-1")
-                .setProductId("P001")
-                .setQuantity(1)
-                .build();
-        CartInfo cartInfo = CartInfo.newBuilder()
-                .setCartId("CART-MOCK-" + request.getUserId())
-                .setUserId(request.getUserId())
-                .addItems(item)
-                .setTotal("9.99")
-                .build();
-        responseObserver.onNext(GetCartForCheckoutResponse.newBuilder()
-                .setCart(cartInfo)
-                .setValid(true)
-                .build());
-        responseObserver.onCompleted();
-        log.debug("getCartForCheckout: userId={}", request.getUserId());
-    }
-
-    @Override
     public void invalidateCart(InvalidateCartRequest request, StreamObserver<InvalidateCartResponse> responseObserver) {
         responseObserver.onNext(InvalidateCartResponse.newBuilder().setInvalidated(true).build());
         responseObserver.onCompleted();
-        log.debug("invalidateCart: cartId={}, orderId={}", request.getCartId(), request.getOrderId());
+        log.debug("invalidateCart: userId={}, productIds={}", request.getUserId(), request.getProductIdsList());
     }
 }
