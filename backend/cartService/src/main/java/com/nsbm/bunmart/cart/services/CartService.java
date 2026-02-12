@@ -67,7 +67,7 @@ public class CartService {
         }
     }
 
-    public Cart getCart(String userId) {
+    public Cart getCart(String userId) throws CartNotExistsException {
         return cartRepository.findByUserId(userId).orElseThrow(() -> new CartNotExistsException(userId));
     }
 
