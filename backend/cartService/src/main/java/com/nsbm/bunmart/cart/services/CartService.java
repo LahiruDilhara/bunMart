@@ -29,7 +29,7 @@ public class CartService {
         this.cartRepository = cartRepository;
     }
 
-    public Cart addCartItem(String userId, String productId, int quantity) throws CartNotExistsException, CartNotSavedException {
+    public Cart addCartItem(String userId, String productId, int quantity) throws CartNotExistsException, CartNotSavedException, DuplicateCartException {
         createCartIfNotExists(userId);
         Cart cart = cartRepository.findByUserId(userId).orElseThrow(()-> new CartNotExistsException(userId));
 

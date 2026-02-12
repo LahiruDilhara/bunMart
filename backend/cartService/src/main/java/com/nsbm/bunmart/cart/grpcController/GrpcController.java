@@ -15,9 +15,9 @@ import net.devh.boot.grpc.server.service.GrpcService;
 public class GrpcController extends CartServiceGrpc.CartServiceImplBase {
 
     private final CartService cartService;
-    private final GRPCMapper  grpcMapper;
+    private final GRPCMapper grpcMapper;
 
-    public  GrpcController(CartService cartService, GRPCMapper grpcMapper) {
+    public GrpcController(CartService cartService, GRPCMapper grpcMapper) {
         this.cartService = cartService;
         this.grpcMapper = grpcMapper;
     }
@@ -25,63 +25,22 @@ public class GrpcController extends CartServiceGrpc.CartServiceImplBase {
     @Override
     public void getCart(GetCartRequest request, StreamObserver<GetCartResponse> responseObserver) {
         String userId = request.getUserId();
-        try{
-            com.nsbm.bunmart.cart.model.Cart cart = cartService.getCart(userId);
-            responseObserver.onNext(grpcMapper.CartToGetCartResponse(cart));
-            responseObserver.onCompleted();
-        }
-        catch (CartNotExistsException cartNotExists){
-            log.error("Cart not exists for userId:{}",userId,cartNotExists);
-            responseObserver.onError(Status.INTERNAL.withDescription("Cart not exists").asRuntimeException());
-            return;
-        }
-        catch (Exception e){
-            log.error("Error occurred while get cart for userId:{}",userId,e);
-            responseObserver.onError(Status.INTERNAL.withDescription("System error").asRuntimeException());
-        }
+        com.nsbm.bunmart.cart.model.Cart cart = cartService.getCart(userId);
+        responseObserver.onNext(grpcMapper.CartToGetCartResponse(cart));
+        responseObserver.onCompleted();
     }
 
     @Override
     public void addCartItem(AddCartItemRequest request, StreamObserver<AddCartItemResponse> responseObserver) {
-        try{
-            com.nsbm.bunmart.cart.model.Cart cart = cartService.addCartItem(request.getUserId(),request.getProductId(),request.getQuantity());
-            responseObserver.onNext(grpcMapper.cartToAddCartItemResponse(cart));
-            responseObserver.onCompleted();
-            return;
-        }
-        catch(CartNotExistsException e){
-            log.error(e.getMessage());
-            responseObserver.onError(Status.INTERNAL.withDescription("Cart not exists").asRuntimeException());
-            return;
-        }
-        catch(DatabaseExceptionException e){
-            log.error(e.getMessage());
-            responseObserver.onError(Status.INTERNAL.withDescription("System error").asRuntimeException());
-        }
-        catch (Exception e) {
-            log.error("addCartItem error",e);
-            responseObserver.onError(Status.INTERNAL.withDescription("System error").asRuntimeException());
-        }
+        com.nsbm.bunmart.cart.model.Cart cart = cartService.addCartItem(request.getUserId(), request.getProductId(), request.getQuantity());
+        responseObserver.onNext(grpcMapper.cartToAddCartItemResponse(cart));
+        responseObserver.onCompleted();
     }
 
     @Override
     public void invalidateCart(InvalidateCartRequest request, StreamObserver<InvalidateCartResponse> responseObserver) {
-        try{
-            cartService.RemoveCartItems(request.getUserId(),request.getProductIdsList());
-            responseObserver.onNext(InvalidateCartResponse.newBuilder().setInvalidated(true).build());
-            responseObserver.onCompleted();
-        }
-        catch(CartNotExistsException e){
-            log.error(e.getMessage());
-            responseObserver.onError(Status.INTERNAL.withDescription("Cart not exists").asRuntimeException());
-        }
-        catch(DatabaseExceptionException e){
-            log.error(e.getMessage());
-            responseObserver.onError(Status.INTERNAL.withDescription("System error").asRuntimeException());
-        }
-        catch (Exception e) {
-            log.error("invalidateCart error",e);
-            responseObserver.onError(Status.INTERNAL.withDescription("System error").asRuntimeException());
-        }
+        cartService.RemoveCartItems(request.getUserId(), request.getProductIdsList());
+        responseObserver.onNext(InvalidateCartResponse.newBuilder().setInvalidated(true).build());
+        responseObserver.onCompleted();
     }
 }

@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalRestExceptionHandler {
 
     @ExceptionHandler(CartItemNotExistsException.class)
     public ResponseEntity<ErrorResponseDTO> handleCartItemNotExists(CartItemNotExistsException e){
