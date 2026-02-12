@@ -1,4 +1,4 @@
-package com.nsbm.bunmart.cart.grpc;
+package com.nsbm.bunmart.cart.grpcController;
 
 import com.nsbm.bunmart.cart.errors.CartNotExistsException;
 import com.nsbm.bunmart.cart.errors.DatabaseExceptionException;
