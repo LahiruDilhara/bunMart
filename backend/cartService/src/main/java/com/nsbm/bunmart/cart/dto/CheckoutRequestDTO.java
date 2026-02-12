@@ -13,6 +13,13 @@ public class CheckoutRequestDTO {
     @NotEmpty(message = "ProductIds list cannot be empty")
     private List<@NotBlank(message = "Product id cannot be blank") String> productIds;
 
+    public CheckoutRequestDTO() {
+    }
+
+    public CheckoutRequestDTO(List<String> productIds) {
+        this.productIds = productIds;
+    }
+
     public List<String> getProductIds() {
         return productIds;
     }

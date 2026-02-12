@@ -1,9 +1,6 @@
 package com.nsbm.bunmart.cart.controller;
 
-import com.nsbm.bunmart.cart.dto.CartResponseDTO;
-import com.nsbm.bunmart.cart.dto.CheckoutRequestDTO;
-import com.nsbm.bunmart.cart.dto.CheckoutResponseDTO;
-import com.nsbm.bunmart.cart.dto.ErrorResponseDTO;
+import com.nsbm.bunmart.cart.dto.*;
 import com.nsbm.bunmart.cart.errors.CartItemNotExistsException;
 import com.nsbm.bunmart.cart.errors.CartNotExistsException;
 import com.nsbm.bunmart.cart.errors.DatabaseExceptionException;
@@ -35,27 +32,27 @@ public class CartController {
             return ResponseEntity.status(HttpStatus.OK).body(cartMapper.cartToCartResponseDTO(cart));
     }
 
-    @DeleteMapping("/item/{itemId}")
+    @DeleteMapping("/items/{productId}")
     public ResponseEntity<Void> deleteCartItem(@RequestParam String userId,@PathVariable String productId){
             cartService.RemoveCartItem(userId,productId);
             return ResponseEntity.status(HttpStatus.OK).body(null);
     }
 
-    @DeleteMapping("/item")
+    @DeleteMapping("/items")
     public ResponseEntity<Void> clearCart(@RequestParam String userId) {
             cartService.ClearCart(userId);
             return ResponseEntity.status(HttpStatus.OK).body(null);
     }
 
-    @PatchMapping("/item/{itemId}")
+    @PatchMapping("/items/{productId}")
     public ResponseEntity<CartResponseDTO> updateCartItem(@RequestParam String userId,@RequestParam int quantity,@PathVariable String productId){
             Cart cart = cartService.UpdateCartItem(userId,productId,quantity);
             return ResponseEntity.status(HttpStatus.OK).body(cartMapper.cartToCartResponseDTO(cart));
     }
 
-    @PostMapping("/item")
-    public ResponseEntity<CartResponseDTO> addCartItem(@RequestParam String userId,@RequestParam int quantity,@RequestParam String productId){
-            Cart cart = cartService.addCartItem(userId,productId,quantity);
+    @PostMapping("/items")
+    public ResponseEntity<CartResponseDTO> addCartItem(@RequestParam String userId,@RequestBody AddCartItemRequestDTO addCartItemRequestDTO){
+            Cart cart = cartService.addCartItem(userId,addCartItemRequestDTO.getProductId(),addCartItemRequestDTO.getQuantity());
             return ResponseEntity.status(HttpStatus.OK).body(cartMapper.cartToCartResponseDTO(cart));
     }
 
