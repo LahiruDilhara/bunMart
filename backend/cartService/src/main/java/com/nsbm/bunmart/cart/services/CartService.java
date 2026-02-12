@@ -4,11 +4,14 @@ import com.nsbm.bunmart.cart.errors.*;
 import com.nsbm.bunmart.cart.model.Cart;
 import com.nsbm.bunmart.cart.model.CartItem;
 import com.nsbm.bunmart.cart.repositories.CartRepository;
+import com.nsbm.bunmart.kitchen.v1.KitchenServiceGrpc;
 import com.nsbm.bunmart.order.v1.CreateOrderIntentRequest;
 import com.nsbm.bunmart.order.v1.OrderServiceGrpc;
 import io.grpc.StatusRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.client.inject.GrpcClient;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -43,22 +46,25 @@ public class CartService {
         try{
             return cartRepository.save(cart);
         }
-        catch (Exception e){
-            log.error("addCartItem cart item info: {}", cart);
+        catch (DataAccessException e){
+            log.error(e.getMessage());
             throw new CartNotSaved("The cart not saved");
         }
     }
 
     private void createCartIfNotExists(String userId) throws DatabaseException {
         try{
-            boolean exists = cartRepository.existsByUserId(userId);
-            if (!exists){
+            if(cartRepository.existsByUserId(userId)){
                 Cart cart = new Cart();
                 cart.setUserId(userId);
                 cartRepository.save(cart);
             }
-        } catch (Exception e) {
-            throw new CartNotSaved("Error while creating cart for id: " + userId);
+        }
+        catch (DataIntegrityViolationException e){
+            throw new DuplicateCart("The cart already exists");
+        }
+        catch (DataAccessException e){
+            throw new CartNotSaved("The cart not saved");
         }
     }
 
@@ -75,24 +81,24 @@ public class CartService {
         try{
             cartRepository.save(cart);
         }
-        catch (Exception e){
-            throw new CartNotSaved("Error while saving cart for id: " + userId);
+        catch (DataAccessException e){
+            log.error(e.getMessage());
+            throw new CartNotSaved("The cart not saved");
         }
     }
 
     public void RemoveCartItem(String userId, String productId){
         Cart cart = getCart(userId);
         List<CartItem> cartItems = cart.getCartItems();
-        if(cartItems.stream().noneMatch(cartItem -> cartItem.getProductId().equals(productId))){
-            throw new CartItemNotExists("CartItem not exists for id: " + productId);
-        }
+        cartItems.stream().filter(cartItem->productId.equals(cartItem.getProductId())).findFirst().orElseThrow(()-> new CartItemNotExists("Cart Item not found"));
         cartItems.removeIf(cartItem -> cartItem.getProductId().equals(productId));
 
         try{
             cart.setCartItems(cartItems);
         }
-        catch (Exception e){
-            throw new CartNotSaved("Error while saving cart for id: " + userId);
+        catch (DataAccessException e){
+            log.error(e.getMessage());
+            throw new CartNotSaved("The cart not saved");
         }
     }
 
@@ -102,8 +108,9 @@ public class CartService {
         try{
             cartRepository.save(cart);
         }
-        catch (Exception e){
-            throw new CartNotSaved("Error while saving cart for id: " + userId);
+        catch (DataAccessException e){
+            log.error(e.getMessage());
+            throw new CartNotSaved("The cart not saved");
         }
     }
 
@@ -120,25 +127,32 @@ public class CartService {
         try{
             return cartRepository.save(cart);
         }
-        catch (Exception e){
-            throw new CartNotSaved("Error while saving cart for id: " + userId);
+        catch (DataAccessException e){
+            log.error(e.getMessage());
+            throw new CartNotSaved("The cart not saved");
         }
     }
 
     public Cart AddCartItem(String userId, int quantity, String productId){
         Cart cart = getCart(userId);
+        List<CartItem> cartItems = cart.getCartItems();
+        if(cartItems.stream().anyMatch(cartItem -> cartItem.getProductId().equals(productId))){
+            throw new DuplicateCartItem("Cart item already exists");
+        }
         CartItem cartItem = new CartItem();
         cartItem.setProductId(productId);
         cartItem.setQuantity(quantity);
         cartItem.setCart(cart);
-        List<CartItem> cartItems = cart.getCartItems();
+
         cartItems.add(cartItem);
         cart.setCartItems(cartItems);
+
         try{
             return cartRepository.save(cart);
         }
-        catch (Exception e){
-            throw new CartNotSaved("Error while saving cart for id: " + userId);
+        catch (DataAccessException e){
+            log.error(e.getMessage());
+            throw new CartNotSaved("The cart not saved");
         }
     }
 
@@ -150,18 +164,22 @@ public class CartService {
 
         List<CreateOrderIntentRequest.CartLine> cartLines = checkoutItems.stream().map(item -> CreateOrderIntentRequest.CartLine.newBuilder().setProductId(item.getProductId()).setQuantity(item.getQuantity()).build()).toList();
         CreateOrderIntentRequest createOrderIntentRequest = CreateOrderIntentRequest.newBuilder().setUserId(userId).setCartId(String.valueOf(cart.getId())).addAllItems(cartLines).build();
-        String orderId = orderStub.createOrderIntent(createOrderIntentRequest).getOrderId();
+
+        String orderId = null;
+        try{
+            orderId = orderStub.createOrderIntent(createOrderIntentRequest).getOrderId();
+        }
+        catch (StatusRuntimeException e){
+            throw new OrderServiceUnavailableException("Order service unavailable");
+        }
 
         cart.setCartItems(remainItems);
 
         try{
             cartRepository.save(cart);
         }
-        catch (StatusRuntimeException e){
-            throw new OrderServiceUnavailableException("Order service unavailable");
-        }
-        catch (Exception e){
-            throw new OrderServiceUnavailableException("Order service unavailable");
+        catch (DataAccessException e){
+            throw new CartNotSaved("Error while saving cart for id: " + userId);
         }
         return orderId;
     }

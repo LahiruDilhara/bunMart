@@ -68,6 +68,8 @@ public class GrpcController extends CartServiceGrpc.CartServiceImplBase {
     public void invalidateCart(InvalidateCartRequest request, StreamObserver<InvalidateCartResponse> responseObserver) {
         try{
             cartService.RemoveCartItems(request.getUserId(),request.getProductIdsList());
+            responseObserver.onNext(InvalidateCartResponse.newBuilder().setInvalidated(true).build());
+            responseObserver.onCompleted();
         }
         catch(CartNotExists e){
             log.error(e.getMessage());
