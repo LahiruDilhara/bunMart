@@ -2,6 +2,7 @@ package com.nsbm.bunmart.cart.controller;
 
 import com.nsbm.bunmart.cart.dto.CartResponseDTO;
 import com.nsbm.bunmart.cart.dto.CheckoutRequestDTO;
+import com.nsbm.bunmart.cart.dto.CheckoutResponseDTO;
 import com.nsbm.bunmart.cart.errors.CartItemNotExists;
 import com.nsbm.bunmart.cart.errors.CartNotExists;
 import com.nsbm.bunmart.cart.errors.DatabaseException;
@@ -48,9 +49,9 @@ public class CartController {
     }
 
     @DeleteMapping("/item/{itemId}")
-    public ResponseEntity<Void> deleteCartItem(@RequestParam String userId,@PathVariable int itemId){
+    public ResponseEntity<Void> deleteCartItem(@RequestParam String userId,@PathVariable String productId){
         try {
-            cartService.RemoveCartItem(userId,itemId);
+            cartService.RemoveCartItem(userId,productId);
             return ResponseEntity.status(HttpStatus.OK).body(null);
         }
         catch (CartItemNotExists e) {
@@ -88,9 +89,9 @@ public class CartController {
     }
 
     @PatchMapping("/item/{itemId}")
-    public ResponseEntity<CartResponseDTO> updateCartItem(@RequestParam String userId,@RequestParam int quantity,@PathVariable int itemId){
+    public ResponseEntity<CartResponseDTO> updateCartItem(@RequestParam String userId,@RequestParam int quantity,@PathVariable String productId){
         try {
-            Cart cart = cartService.UpdateCartItem(userId,itemId,quantity);
+            Cart cart = cartService.UpdateCartItem(userId,productId,quantity);
             return ResponseEntity.status(HttpStatus.OK).body(cartMapper.cartToCartResponseDTO(cart));
         }
         catch (CartItemNotExists e) {
@@ -128,7 +129,22 @@ public class CartController {
     }
 
     @PostMapping("checkout")
-    public ResponseEntity<CartResponseDTO> checkout(@RequestParam String userId, @Valid @RequestBody CheckoutRequestDTO checkoutRequestDTO){
-
+    public ResponseEntity<CheckoutResponseDTO> checkout(@RequestParam String userId, @Valid @RequestBody CheckoutRequestDTO checkoutRequestDTO){
+        try{
+            String orderId = cartService.checkout(userId,checkoutRequestDTO.getProductIds());
+            return ResponseEntity.status(HttpStatus.OK).body(new CheckoutResponseDTO(orderId));
+        }
+        catch (CartItemNotExists e) {
+            log.error(e.getMessage());
+            return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        catch (DatabaseException e){
+            log.error(e.getMessage());
+            return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+        catch (Exception e) {
+            log.error("invalidateCart error",e);
+            return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 }

@@ -10,15 +10,15 @@ import java.util.List;
 
 public class CheckoutRequestDTO {
 
-    @NotEmpty(message = "Items list cannot be empty")
-    private List<@NotNull(message="Item id cannot be null") @Min(value=1, message="Item id must be positive") Integer> itemIds;
+    @NotEmpty(message = "ProductIds list cannot be empty")
+    private List<@NotBlank(message = "Product id cannot be blank") String> productIds;
 
-    public List<Integer> getItemIds() {
-        return itemIds;
+    public List<String> getProductIds() {
+        return productIds;
     }
 
-    public void setItemIds(List<Integer> itemIds) {
-        this.itemIds = itemIds;
+    public void setProductIds(List<String> productIds) {
+        this.productIds = productIds;
     }
 }
 
