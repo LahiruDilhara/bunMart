@@ -4,7 +4,6 @@ import com.nsbm.bunmart.cart.errors.*;
 import com.nsbm.bunmart.cart.model.Cart;
 import com.nsbm.bunmart.cart.model.CartItem;
 import com.nsbm.bunmart.cart.repositories.CartRepository;
-import com.nsbm.bunmart.kitchen.v1.KitchenServiceGrpc;
 import com.nsbm.bunmart.order.v1.CreateOrderIntentRequest;
 import com.nsbm.bunmart.order.v1.OrderServiceGrpc;
 import io.grpc.StatusRuntimeException;
@@ -30,9 +29,9 @@ public class CartService {
         this.cartRepository = cartRepository;
     }
 
-    public Cart addCartItem(String userId, String productId, int quantity) throws CartNotExists, DatabaseException{
+    public Cart addCartItem(String userId, String productId, int quantity) throws CartNotExistsException, CartNotSavedException {
         createCartIfNotExists(userId);
-        Cart cart = cartRepository.findByUserId(userId).orElseThrow(()-> new CartNotExists(userId));
+        Cart cart = cartRepository.findByUserId(userId).orElseThrow(()-> new CartNotExistsException(userId));
 
         CartItem cartItem = new CartItem();
         cartItem.setProductId(productId);
@@ -48,11 +47,11 @@ public class CartService {
         }
         catch (DataAccessException e){
             log.error(e.getMessage());
-            throw new CartNotSaved("The cart not saved");
+            throw new CartNotSavedException("The cart not saved");
         }
     }
 
-    private void createCartIfNotExists(String userId) throws DatabaseException {
+    private void createCartIfNotExists(String userId) throws DuplicateCartException, CartNotSavedException {
         try{
             if(cartRepository.existsByUserId(userId)){
                 Cart cart = new Cart();
@@ -61,18 +60,18 @@ public class CartService {
             }
         }
         catch (DataIntegrityViolationException e){
-            throw new DuplicateCart("The cart already exists");
+            throw new DuplicateCartException("The cart already exists");
         }
         catch (DataAccessException e){
-            throw new CartNotSaved("The cart not saved");
+            throw new CartNotSavedException("The cart not saved");
         }
     }
 
     public Cart getCart(String userId) {
-        return cartRepository.findByUserId(userId).orElseThrow(() -> new CartNotExists(userId));
+        return cartRepository.findByUserId(userId).orElseThrow(() -> new CartNotExistsException(userId));
     }
 
-    public void RemoveCartItems(String userId, List<String> productIds){
+    public void RemoveCartItems(String userId, List<String> productIds) throws CartNotExistsException, CartNotSavedException {
         Cart cart = getCart(userId);
         List<CartItem> cartItems = cart.getCartItems();
         cartItems.removeIf(cartItem -> productIds.contains(cartItem.getProductId()));
@@ -83,14 +82,14 @@ public class CartService {
         }
         catch (DataAccessException e){
             log.error(e.getMessage());
-            throw new CartNotSaved("The cart not saved");
+            throw new CartNotSavedException("The cart not saved");
         }
     }
 
-    public void RemoveCartItem(String userId, String productId){
+    public void RemoveCartItem(String userId, String productId) throws CartNotExistsException, CartNotSavedException, CartItemNotExistsException {
         Cart cart = getCart(userId);
         List<CartItem> cartItems = cart.getCartItems();
-        cartItems.stream().filter(cartItem->productId.equals(cartItem.getProductId())).findFirst().orElseThrow(()-> new CartItemNotExists("Cart Item not found"));
+        cartItems.stream().filter(cartItem->productId.equals(cartItem.getProductId())).findFirst().orElseThrow(()-> new CartItemNotExistsException("Cart Item not found"));
         cartItems.removeIf(cartItem -> cartItem.getProductId().equals(productId));
 
         try{
@@ -98,11 +97,11 @@ public class CartService {
         }
         catch (DataAccessException e){
             log.error(e.getMessage());
-            throw new CartNotSaved("The cart not saved");
+            throw new CartNotSavedException("The cart not saved");
         }
     }
 
-    public void ClearCart(String userId){
+    public void ClearCart(String userId)throws CartNotExistsException, CartNotSavedException {
         Cart cart = getCart(userId);
         cart.setCartItems(new ArrayList<>());
         try{
@@ -110,18 +109,18 @@ public class CartService {
         }
         catch (DataAccessException e){
             log.error(e.getMessage());
-            throw new CartNotSaved("The cart not saved");
+            throw new CartNotSavedException("The cart not saved");
         }
     }
 
-    public Cart UpdateCartItem(String userId, String productId, int quantity){
+    public Cart UpdateCartItem(String userId, String productId, int quantity) throws CartNotExistsException, CartNotSavedException, CartItemNotExistsException {
         Cart cart = getCart(userId);
         CartItem cartItem = cart.getCartItems()
                 .stream()
                 .filter(item -> item.getProductId().equals(productId))
                 .findFirst()
                 .orElseThrow(() ->
-                        new CartItemNotExists("CartItem not exists for id: " + productId)
+                        new CartItemNotExistsException("CartItem not exists for id: " + productId)
                 );
         cartItem.setQuantity(quantity);
         try{
@@ -129,15 +128,15 @@ public class CartService {
         }
         catch (DataAccessException e){
             log.error(e.getMessage());
-            throw new CartNotSaved("The cart not saved");
+            throw new CartNotSavedException("The cart not saved");
         }
     }
 
-    public Cart AddCartItem(String userId, int quantity, String productId){
+    public Cart AddCartItem(String userId, int quantity, String productId) throws CartNotExistsException, DuplicateCartItemException, CartNotSavedException {
         Cart cart = getCart(userId);
         List<CartItem> cartItems = cart.getCartItems();
         if(cartItems.stream().anyMatch(cartItem -> cartItem.getProductId().equals(productId))){
-            throw new DuplicateCartItem("Cart item already exists");
+            throw new DuplicateCartItemException("Cart item already exists");
         }
         CartItem cartItem = new CartItem();
         cartItem.setProductId(productId);
@@ -152,13 +151,16 @@ public class CartService {
         }
         catch (DataAccessException e){
             log.error(e.getMessage());
-            throw new CartNotSaved("The cart not saved");
+            throw new CartNotSavedException("The cart not saved");
         }
     }
 
-    public String checkout(String userId, List<String> productIds){
+    public String checkout(String userId, List<String> productIds) throws CartItemNotExistsException, OrderServiceUnavailableException, CartNotSavedException {
         Cart cart = getCart(userId);
         List<CartItem> cartItems = cart.getCartItems();
+        if(!cartItems.stream().anyMatch(cartItem -> productIds.contains(cartItem.getProductId()))){
+            throw new CartItemNotExistsException("The cart item does not exist");
+        }
         List<CartItem> checkoutItems = cartItems.stream().filter(cartItem -> productIds.contains(cartItem.getProductId())).toList();
         List<CartItem> remainItems =  cartItems.stream().filter(cartItem -> !productIds.contains(cartItem.getProductId())).toList();
 
@@ -179,7 +181,7 @@ public class CartService {
             cartRepository.save(cart);
         }
         catch (DataAccessException e){
-            throw new CartNotSaved("Error while saving cart for id: " + userId);
+            throw new CartNotSavedException("Error while saving cart for id: " + userId);
         }
         return orderId;
     }

@@ -3,9 +3,9 @@ package com.nsbm.bunmart.cart.controller;
 import com.nsbm.bunmart.cart.dto.CartResponseDTO;
 import com.nsbm.bunmart.cart.dto.CheckoutRequestDTO;
 import com.nsbm.bunmart.cart.dto.CheckoutResponseDTO;
-import com.nsbm.bunmart.cart.errors.CartItemNotExists;
-import com.nsbm.bunmart.cart.errors.CartNotExists;
-import com.nsbm.bunmart.cart.errors.DatabaseException;
+import com.nsbm.bunmart.cart.errors.CartItemNotExistsException;
+import com.nsbm.bunmart.cart.errors.CartNotExistsException;
+import com.nsbm.bunmart.cart.errors.DatabaseExceptionException;
 import com.nsbm.bunmart.cart.mappers.rest.CartMapper;
 import com.nsbm.bunmart.cart.model.Cart;
 import com.nsbm.bunmart.cart.services.CartService;
@@ -34,11 +34,11 @@ public class CartController {
             Cart cart = cartService.getCart(userId);
             return ResponseEntity.status(HttpStatus.OK).body(cartMapper.cartToCartResponseDTO(cart));
         }
-        catch (CartNotExists e) {
+        catch (CartNotExistsException e) {
             log.error(e.getMessage());
             return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
-        catch (DatabaseException e) {
+        catch (DatabaseExceptionException e) {
             log.error(e.getMessage());
             return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
@@ -54,11 +54,11 @@ public class CartController {
             cartService.RemoveCartItem(userId,productId);
             return ResponseEntity.status(HttpStatus.OK).body(null);
         }
-        catch (CartItemNotExists e) {
+        catch (CartItemNotExistsException e) {
             log.error(e.getMessage());
             return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
-        catch (DatabaseException e){
+        catch (DatabaseExceptionException e){
             log.error(e.getMessage());
             return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
@@ -74,11 +74,11 @@ public class CartController {
             cartService.ClearCart(userId);
             return ResponseEntity.status(HttpStatus.OK).body(null);
         }
-        catch (CartItemNotExists e) {
+        catch (CartItemNotExistsException e) {
             log.error(e.getMessage());
             return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
-        catch (DatabaseException e){
+        catch (DatabaseExceptionException e){
             log.error(e.getMessage());
             return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
@@ -94,11 +94,11 @@ public class CartController {
             Cart cart = cartService.UpdateCartItem(userId,productId,quantity);
             return ResponseEntity.status(HttpStatus.OK).body(cartMapper.cartToCartResponseDTO(cart));
         }
-        catch (CartItemNotExists e) {
+        catch (CartItemNotExistsException e) {
             log.error(e.getMessage());
             return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
-        catch (DatabaseException e){
+        catch (DatabaseExceptionException e){
             log.error(e.getMessage());
             return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
@@ -114,11 +114,11 @@ public class CartController {
             Cart cart = cartService.addCartItem(userId,productId,quantity);
             return ResponseEntity.status(HttpStatus.OK).body(cartMapper.cartToCartResponseDTO(cart));
         }
-        catch (CartItemNotExists e) {
+        catch (CartItemNotExistsException e) {
             log.error(e.getMessage());
             return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
-        catch (DatabaseException e){
+        catch (DatabaseExceptionException e){
             log.error(e.getMessage());
             return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
@@ -134,11 +134,11 @@ public class CartController {
             String orderId = cartService.checkout(userId,checkoutRequestDTO.getProductIds());
             return ResponseEntity.status(HttpStatus.OK).body(new CheckoutResponseDTO(orderId));
         }
-        catch (CartItemNotExists e) {
+        catch (CartItemNotExistsException e) {
             log.error(e.getMessage());
             return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
-        catch (DatabaseException e){
+        catch (DatabaseExceptionException e){
             log.error(e.getMessage());
             return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }

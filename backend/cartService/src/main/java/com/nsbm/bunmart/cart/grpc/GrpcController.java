@@ -1,7 +1,7 @@
 package com.nsbm.bunmart.cart.grpc;
 
-import com.nsbm.bunmart.cart.errors.CartNotExists;
-import com.nsbm.bunmart.cart.errors.DatabaseException;
+import com.nsbm.bunmart.cart.errors.CartNotExistsException;
+import com.nsbm.bunmart.cart.errors.DatabaseExceptionException;
 import com.nsbm.bunmart.cart.mappers.grpc.GRPCMapper;
 import com.nsbm.bunmart.cart.services.CartService;
 import com.nsbm.bunmart.cart.v1.*;
@@ -30,7 +30,7 @@ public class GrpcController extends CartServiceGrpc.CartServiceImplBase {
             responseObserver.onNext(grpcMapper.CartToGetCartResponse(cart));
             responseObserver.onCompleted();
         }
-        catch (CartNotExists cartNotExists){
+        catch (CartNotExistsException cartNotExists){
             log.error("Cart not exists for userId:{}",userId,cartNotExists);
             responseObserver.onError(Status.INTERNAL.withDescription("Cart not exists").asRuntimeException());
             return;
@@ -49,12 +49,12 @@ public class GrpcController extends CartServiceGrpc.CartServiceImplBase {
             responseObserver.onCompleted();
             return;
         }
-        catch(CartNotExists e){
+        catch(CartNotExistsException e){
             log.error(e.getMessage());
             responseObserver.onError(Status.INTERNAL.withDescription("Cart not exists").asRuntimeException());
             return;
         }
-        catch(DatabaseException e){
+        catch(DatabaseExceptionException e){
             log.error(e.getMessage());
             responseObserver.onError(Status.INTERNAL.withDescription("System error").asRuntimeException());
         }
@@ -71,11 +71,11 @@ public class GrpcController extends CartServiceGrpc.CartServiceImplBase {
             responseObserver.onNext(InvalidateCartResponse.newBuilder().setInvalidated(true).build());
             responseObserver.onCompleted();
         }
-        catch(CartNotExists e){
+        catch(CartNotExistsException e){
             log.error(e.getMessage());
             responseObserver.onError(Status.INTERNAL.withDescription("Cart not exists").asRuntimeException());
         }
-        catch(DatabaseException e){
+        catch(DatabaseExceptionException e){
             log.error(e.getMessage());
             responseObserver.onError(Status.INTERNAL.withDescription("System error").asRuntimeException());
         }
