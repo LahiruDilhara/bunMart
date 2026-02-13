@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping(("/api/v1/cart"))
+@RequestMapping("/api/v1/cart")
 public class CartController {
     private final CartMapper cartMapper;
     private final CartService cartService;
@@ -45,8 +45,8 @@ public class CartController {
     }
 
     @PatchMapping("/items/{productId}")
-    public ResponseEntity<CartResponseDTO> updateCartItem(@RequestParam String userId,@RequestParam int quantity,@PathVariable String productId){
-            Cart cart = cartService.UpdateCartItem(userId,productId,quantity);
+    public ResponseEntity<CartResponseDTO> updateCartItem(@RequestParam String userId,@Valid @RequestBody UpdateCartItemRequestDTO updateCartItemRequestDTO,@PathVariable String productId){
+            Cart cart = cartService.UpdateCartItem(userId,productId,updateCartItemRequestDTO.getQuantity());
             return ResponseEntity.status(HttpStatus.OK).body(cartMapper.cartToCartResponseDTO(cart));
     }
 
@@ -56,7 +56,7 @@ public class CartController {
             return ResponseEntity.status(HttpStatus.OK).body(cartMapper.cartToCartResponseDTO(cart));
     }
 
-    @PostMapping("checkout")
+    @PostMapping("/checkout")
     public ResponseEntity<CheckoutResponseDTO> checkout(@RequestParam String userId, @Valid @RequestBody CheckoutRequestDTO checkoutRequestDTO){
             String orderId = cartService.checkout(userId,checkoutRequestDTO.getProductIds());
             return ResponseEntity.status(HttpStatus.OK).body(new CheckoutResponseDTO(orderId));
