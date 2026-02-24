@@ -69,6 +69,7 @@ public class DriverService implements DriverInterface {
 
     public DriverDTO updateDriver(Integer driverId, DriverDTO driverDTO){
 
+        // Check if movie object exists inDB
         Driver driver = driverRepository.findById(Long.valueOf(driverId)).orElseThrow(() -> new RuntimeException("Driver Not Found"));
 
         // Update fields
@@ -90,7 +91,13 @@ public class DriverService implements DriverInterface {
         return driverDTO1;
     }
 
-    public String deleteDriver(){
-        return "Delete Driver";
+    public String deleteDriver(Integer driverId){
+
+        // Check if movie object exists inDB
+        Driver driver = driverRepository.findById(Long.valueOf(driverId)).orElseThrow(() -> new RuntimeException("Driver Not Found"));
+
+        driverRepository.delete(driver);
+
+        return "Driver deleted successfully";
     }
 }

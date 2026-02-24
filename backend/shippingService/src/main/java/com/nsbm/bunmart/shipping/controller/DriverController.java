@@ -36,4 +36,9 @@ public class DriverController {
     public DriverDTO updateDriver(@PathVariable Integer driverId ,@RequestBody DriverDTO driverDTO){
         return driverService.updateDriver(driverId,driverDTO);
     }
+
+    @DeleteMapping("/{driverId}")
+    public void deleteDriver(@PathVariable Integer driverId){
+        driverService.deleteDriver(driverId);
+    }
 }
