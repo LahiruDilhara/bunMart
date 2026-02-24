@@ -37,4 +37,4 @@ out/
 .vscode/
 
 
-/shippingService/application.properties
+/shippingService/src/main/resources/application.properties
