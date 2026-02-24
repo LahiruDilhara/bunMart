@@ -31,4 +31,9 @@ public class DriverController {
         DriverDTO driverDTO = driverService.getDriverById(driverId);
         return ResponseEntity.ok(driverDTO);
     }
+
+    @PutMapping("/{driverId}")
+    public DriverDTO updateDriver(@PathVariable Integer driverId ,@RequestBody DriverDTO driverDTO){
+        return driverService.updateDriver(driverId,driverDTO);
+    }
 }

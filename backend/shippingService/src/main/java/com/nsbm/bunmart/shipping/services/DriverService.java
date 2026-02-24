@@ -54,7 +54,7 @@ public class DriverService implements DriverInterface {
     public DriverDTO getDriverById(Integer driverID){
 
         // Fetch driver from DB
-        Driver driver = driverRepository.findById(Long.valueOf(driverID)).orElseThrow(() -> new RuntimeException("Not Found"));
+        Driver driver = driverRepository.findById(Long.valueOf(driverID)).orElseThrow(() -> new RuntimeException("Driver Not Found"));
 
         // Convert entity to DTO
         DriverDTO driverDTO = DriverDTO.builder()
@@ -67,8 +67,27 @@ public class DriverService implements DriverInterface {
         return driverDTO;
     }
 
-    public String updateDriver(){
-        return "Update Driver";
+    public DriverDTO updateDriver(Integer driverId, DriverDTO driverDTO){
+
+        Driver driver = driverRepository.findById(Long.valueOf(driverId)).orElseThrow(() -> new RuntimeException("Driver Not Found"));
+
+        // Update fields
+        driver.setName(driverDTO.getName());
+        driver.setPhone(driverDTO.getPhone());
+        driver.setActive(driverDTO.isActive());
+
+        // Save updated entity
+        Driver updatedDriver = driverRepository.save(driver);
+
+        // Convert to DTO and return
+        DriverDTO driverDTO1 =  DriverDTO.builder()
+                .driver_id(updatedDriver.getDriver_id())
+                .name(updatedDriver.getName())
+                .phone(updatedDriver.getPhone())
+                .active(updatedDriver.isActive())
+                .build();
+
+        return driverDTO1;
     }
 
     public String deleteDriver(){
