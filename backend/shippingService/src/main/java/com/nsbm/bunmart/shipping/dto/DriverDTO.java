@@ -9,16 +9,16 @@ import lombok.NoArgsConstructor;
 @Builder
 public class DriverDTO {
 
-    private long driver_id;
+    private Integer driver_id;
     private String name;
-    private int phone;
+    private String phone;
     private boolean active;
 
-    public long getDriver_id() {
+    public Integer getDriver_id() {
         return driver_id;
     }
 
-    public void setDriver_id(long driver_id) {
+    public void setDriver_id(Integer driver_id) {
         this.driver_id = driver_id;
     }
 
@@ -30,11 +30,11 @@ public class DriverDTO {
         this.name = name;
     }
 
-    public int getPhone() {
+    public String getPhone() {
         return phone;
     }
 
-    public void setPhone(int phone) {
+    public void setPhone(String phone) {
         this.phone = phone;
     }
 
