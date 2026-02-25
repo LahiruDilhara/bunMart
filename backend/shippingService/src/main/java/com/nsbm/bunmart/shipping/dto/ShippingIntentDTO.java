@@ -1,5 +1,6 @@
-package com.nsbm.bunmart.shipping.model;
+package com.nsbm.bunmart.shipping.dto;
 
+import com.nsbm.bunmart.shipping.model.ShippingStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -8,11 +9,9 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-@Entity
-@Table(name = "shipping_intents")
-public class ShippingIntent {
+@AllArgsConstructor
+public class ShippingIntentDTO {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,7 +22,7 @@ public class ShippingIntent {
     private Integer addressId;
 
     @Enumerated(EnumType.STRING)
-    private ShippingIntentStatus status;
+    private ShippingStatus status;
     private LocalDateTime created_at;
 
     public Integer getShipping_intent_id() {
@@ -58,11 +57,11 @@ public class ShippingIntent {
         this.addressId = addressId;
     }
 
-    public ShippingIntentStatus getStatus() {
+    public ShippingStatus getStatus() {
         return status;
     }
 
-    public void setStatus(ShippingIntentStatus status) {
+    public void setStatus(ShippingStatus status) {
         this.status = status;
     }
 

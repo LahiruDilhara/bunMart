@@ -1,7 +1,8 @@
 package com.nsbm.bunmart.shipping.model;
 
 public enum ShippingIntentStatus {
+    PENDING,
     ASSIGNED,
-    OUT_FOR_DELIVERY,
-    DELIVERED
+    CANCELLED,
+    COMPLETED
 }
