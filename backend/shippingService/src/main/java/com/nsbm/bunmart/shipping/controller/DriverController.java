@@ -2,7 +2,6 @@ package com.nsbm.bunmart.shipping.controller;
 
 import com.nsbm.bunmart.shipping.dto.DriverDTO;
 import com.nsbm.bunmart.shipping.services.DriverService;
-import jakarta.persistence.criteria.CriteriaBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,7 +37,8 @@ public class DriverController {
     }
 
     @DeleteMapping("/{driverId}")
-    public void deleteDriver(@PathVariable Integer driverId){
-        driverService.deleteDriver(driverId);
+    public ResponseEntity<String> deleteDriver(@PathVariable Integer driverId){
+        String message = driverService.deleteDriver(driverId);
+        return ResponseEntity.ok(message);
     }
 }

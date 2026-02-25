@@ -5,7 +5,9 @@ import com.nsbm.bunmart.shipping.interfaces.DriverInterface;
 import com.nsbm.bunmart.shipping.model.Driver;
 import com.nsbm.bunmart.shipping.repositories.DriverRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -94,7 +96,7 @@ public class DriverService implements DriverInterface {
     public String deleteDriver(Integer driverId){
 
         // Check if movie object exists inDB
-        Driver driver = driverRepository.findById(Long.valueOf(driverId)).orElseThrow(() -> new RuntimeException("Driver Not Found"));
+        Driver driver = driverRepository.findById(Long.valueOf(driverId)).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Driver Not Found"));
 
         driverRepository.delete(driver);
 
