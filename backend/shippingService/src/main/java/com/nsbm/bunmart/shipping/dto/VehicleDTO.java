@@ -1,22 +1,15 @@
-package com.nsbm.bunmart.shipping.model;
+package com.nsbm.bunmart.shipping.dto;
 
-
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Builder;
 import lombok.NoArgsConstructor;
 
-@Data
-@AllArgsConstructor
 @NoArgsConstructor
-@Entity
-@Table(name = "vehicles")
-public class Vehicle {
+@AllArgsConstructor
+@Builder
+public class VehicleDTO {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer vehicle_id;
-
     private String plate_number;
     private String type;
     private boolean active;
