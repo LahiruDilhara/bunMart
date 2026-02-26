@@ -24,53 +24,7 @@ public class ShippingIntent {
 
     @Enumerated(EnumType.STRING)
     private ShippingIntentStatus status;
+
     private LocalDateTime created_at;
 
-    public Integer getShipping_intent_id() {
-        return shipping_intent_id;
-    }
-
-    public void setShipping_intent_id(Integer shipping_intent_id) {
-        this.shipping_intent_id = shipping_intent_id;
-    }
-
-    public Integer getOrderId() {
-        return orderId;
-    }
-
-    public void setOrderId(Integer orderId) {
-        this.orderId = orderId;
-    }
-
-    public Integer getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Integer userId) {
-        this.userId = userId;
-    }
-
-    public Integer getAddressId() {
-        return addressId;
-    }
-
-    public void setAddressId(Integer addressId) {
-        this.addressId = addressId;
-    }
-
-    public ShippingIntentStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(ShippingIntentStatus status) {
-        this.status = status;
-    }
-
-    public LocalDateTime getCreated_at() {
-        return created_at;
-    }
-
-    public void setCreated_at(LocalDateTime created_at) {
-        this.created_at = created_at;
-    }
 }

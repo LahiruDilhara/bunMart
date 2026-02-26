@@ -1,15 +1,15 @@
 package com.nsbm.bunmart.shipping.controller;
 
 import com.nsbm.bunmart.shipping.dto.ShippingIntentDTO;
+import com.nsbm.bunmart.shipping.model.ShippingIntentStatus;
 import com.nsbm.bunmart.shipping.services.ShippingIntentService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/shipping-intents")
+@RequestMapping("/api/v1/shipping/shipping-intents")
 public class ShippingIntentController {
 
     private final ShippingIntentService shippingIntentService;
@@ -24,4 +24,55 @@ public class ShippingIntentController {
         ShippingIntentDTO shippingIntentCreate = shippingIntentService.createShippingIntent(dto);
         return ResponseEntity.ok(shippingIntentCreate);
     }
+
+    // Get Shipping Intent by ID
+    @GetMapping("/{intentId}")
+    public ResponseEntity<ShippingIntentDTO> getShippingIntentById(@PathVariable Integer intentId){
+        ShippingIntentDTO shippingIntentDTO =  shippingIntentService.getShippingIntentById(intentId);
+        return ResponseEntity.ok(shippingIntentDTO);
+    }
+
+    // Get Shipping Intents by Status
+    @GetMapping("/status/{status}")
+    public ResponseEntity<List<ShippingIntentDTO>> getShippingIntentsByStatus(@PathVariable String status){
+
+        // Convert string to enum
+        ShippingIntentStatus shippingIntentStatus;
+
+        try {
+            shippingIntentStatus = ShippingIntentStatus.valueOf(status.toUpperCase());
+        }
+
+        catch (IllegalArgumentException e){
+            return ResponseEntity.badRequest().build();
+        }
+
+        List<ShippingIntentDTO> list = shippingIntentService.getShippingIntentsByStatus(shippingIntentStatus);
+        return ResponseEntity.ok(list);
+
+    }
+
+    //  Update Shipping Intent Status
+    @PatchMapping("/{intentId}")
+    public ResponseEntity<ShippingIntentDTO> updateShippingIntentStatus(
+            @PathVariable Integer intentId,
+            @RequestBody ShippingIntentDTO shippingIntentDTO) {
+
+        ShippingIntentStatus shippingIntentStatus;
+
+        try {
+            // Convert the status string to enum
+            shippingIntentStatus = ShippingIntentStatus.valueOf(String.valueOf(shippingIntentDTO.getStatus()));
+        } catch (IllegalArgumentException e) {
+            // Invalid status value
+            return ResponseEntity.badRequest().build();
+        }
+
+        // Call service to update
+        ShippingIntentDTO statusUpdated =
+                shippingIntentService.updateShippingIntentStatus(intentId, shippingIntentStatus);
+
+        return ResponseEntity.ok(statusUpdated);
+    }
+
 }
