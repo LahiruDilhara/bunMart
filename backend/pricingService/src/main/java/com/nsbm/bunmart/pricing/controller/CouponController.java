@@ -25,17 +25,17 @@ public class CouponController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Coupon> getById(@PathVariable String id) {
+    public ResponseEntity<Coupon> getById(@PathVariable Long id) {
         return ResponseEntity.ok(service.getById(id));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Coupon> update(@PathVariable String id, @RequestBody Coupon coupon) {
+    public ResponseEntity<Coupon> update(@PathVariable Long id, @RequestBody Coupon coupon) {
         return ResponseEntity.ok(service.update(id, coupon));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }

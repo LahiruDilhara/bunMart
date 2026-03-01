@@ -30,17 +30,17 @@ public class PriceRuleController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PriceRule> getById(@PathVariable String id) {
+    public ResponseEntity<PriceRule> getById(@PathVariable Long id) {
         return ResponseEntity.ok(service.getById(id));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PriceRule> update(@PathVariable String id, @RequestBody PriceRule priceRule) {
+    public ResponseEntity<PriceRule> update(@PathVariable Long id, @RequestBody PriceRule priceRule) {
         return ResponseEntity.ok(service.update(id, priceRule));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }

@@ -25,17 +25,17 @@ public class DiscountController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DiscountRule> getById(@PathVariable String id) {
+    public ResponseEntity<DiscountRule> getById(@PathVariable Long id) {
         return ResponseEntity.ok(service.getById(id));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DiscountRule> update(@PathVariable String id, @RequestBody DiscountRule discountRule) {
+    public ResponseEntity<DiscountRule> update(@PathVariable Long id, @RequestBody DiscountRule discountRule) {
         return ResponseEntity.ok(service.update(id, discountRule));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }

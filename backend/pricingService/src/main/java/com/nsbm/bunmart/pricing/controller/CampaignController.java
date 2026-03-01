@@ -25,17 +25,17 @@ public class CampaignController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Campaign> getById(@PathVariable String id) {
+    public ResponseEntity<Campaign> getById(@PathVariable Long id) {
         return ResponseEntity.ok(service.getById(id));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Campaign> update(@PathVariable String id, @RequestBody Campaign campaign) {
+    public ResponseEntity<Campaign> update(@PathVariable Long id, @RequestBody Campaign campaign) {
         return ResponseEntity.ok(service.update(id, campaign));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
