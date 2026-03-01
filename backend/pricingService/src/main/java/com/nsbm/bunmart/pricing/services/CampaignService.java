@@ -1,5 +1,6 @@
 package com.nsbm.bunmart.pricing.services;
 
+import com.nsbm.bunmart.pricing.interface_.ICampaignService;
 import com.nsbm.bunmart.pricing.model.Campaign;
 import com.nsbm.bunmart.pricing.repositories.CampaignRepository;
 import lombok.RequiredArgsConstructor;

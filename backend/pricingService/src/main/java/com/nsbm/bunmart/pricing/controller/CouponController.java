@@ -1,5 +1,6 @@
 package com.nsbm.bunmart.pricing.controller;
 
+import com.nsbm.bunmart.pricing.interface_.ICouponService;
 import com.nsbm.bunmart.pricing.model.Coupon;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

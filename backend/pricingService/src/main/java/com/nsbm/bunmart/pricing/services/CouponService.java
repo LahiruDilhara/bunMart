@@ -1,5 +1,6 @@
 package com.nsbm.bunmart.pricing.services;
 
+import com.nsbm.bunmart.pricing.interface_.ICouponService;
 import com.nsbm.bunmart.pricing.model.Coupon;
 import com.nsbm.bunmart.pricing.repositories.CouponRepository;
 import lombok.RequiredArgsConstructor;

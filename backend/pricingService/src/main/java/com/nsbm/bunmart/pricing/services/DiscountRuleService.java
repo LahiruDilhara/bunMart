@@ -1,5 +1,6 @@
 package com.nsbm.bunmart.pricing.services;
 
+import com.nsbm.bunmart.pricing.interface_.IDiscountRuleService;
 import com.nsbm.bunmart.pricing.model.DiscountRule;
 import com.nsbm.bunmart.pricing.repositories.DiscountRuleRepository;
 import lombok.RequiredArgsConstructor;
