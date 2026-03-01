@@ -1,14 +1,13 @@
-package com.nsbm.bunmart.pricing;
+package com.nsbm.bunmart.pricing.interface_;
 
 import com.nsbm.bunmart.pricing.model.DiscountRule;
-
 import java.util.List;
 
 public interface IDiscountRuleService {
     DiscountRule create(DiscountRule discountRule);
-    DiscountRule getById(String id);
+    DiscountRule getById(Long id);
     List<DiscountRule> getAll();
-    DiscountRule update(String id, DiscountRule discountRule);
-    void delete(String id);
+    DiscountRule update(Long id, DiscountRule discountRule);
+    void delete(Long id);
     List<DiscountRule> getByProductIds(List<String> productIds);
 }

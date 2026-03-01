@@ -1,14 +1,13 @@
-package com.nsbm.bunmart.pricing;
+package com.nsbm.bunmart.pricing.interface_;
 
 import com.nsbm.bunmart.pricing.model.PriceRule;
-
 import java.util.List;
 
 public interface IPriceRuleService {
     PriceRule create(PriceRule priceRule);
-    PriceRule getById(String id);
+    PriceRule getById(Long id);
     List<PriceRule> getAll();
-    PriceRule update(String id, PriceRule priceRule);
-    void delete(String id);
+    PriceRule update(Long id, PriceRule priceRule);
+    void delete(Long id);
     List<PriceRule> getByProductIds(List<String> productIds);
 }
