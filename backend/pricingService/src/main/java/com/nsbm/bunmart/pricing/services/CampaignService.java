@@ -1,6 +1,5 @@
 package com.nsbm.bunmart.pricing.services;
 
-import com.nsbm.bunmart.pricing.interface_.ICampaignService;
 import com.nsbm.bunmart.pricing.model.Campaign;
 import com.nsbm.bunmart.pricing.repositories.CampaignRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,7 @@ public class CampaignService implements ICampaignService {
     public Campaign create(Campaign c) { return repo.save(c); }
 
     @Override
-    public Campaign getById(String id) {
+    public Campaign getById(Long id) {
         return repo.findById(id).orElseThrow(() -> new RuntimeException("Campaign not found: " + id));
     }
 
@@ -25,7 +24,7 @@ public class CampaignService implements ICampaignService {
     public List<Campaign> getAll() { return repo.findAll(); }
 
     @Override
-    public Campaign update(String id, Campaign c) {
+    public Campaign update(Long id, Campaign c) {
         Campaign existing = getById(id);
         existing.setName(c.getName());
         existing.setDescription(c.getDescription());
@@ -36,5 +35,5 @@ public class CampaignService implements ICampaignService {
     }
 
     @Override
-    public void delete(String id) { repo.deleteById(id); }
+    public void delete(Long id) { repo.deleteById(id); }
 }

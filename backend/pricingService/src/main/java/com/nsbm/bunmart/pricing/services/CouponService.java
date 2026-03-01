@@ -1,6 +1,5 @@
 package com.nsbm.bunmart.pricing.services;
 
-import com.nsbm.bunmart.pricing.interface_.ICouponService;
 import com.nsbm.bunmart.pricing.model.Coupon;
 import com.nsbm.bunmart.pricing.repositories.CouponRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +17,7 @@ public class CouponService implements ICouponService {
     public Coupon create(Coupon c) { return repo.save(c); }
 
     @Override
-    public Coupon getById(String id) {
+    public Coupon getById(Long id) {
         return repo.findById(id).orElseThrow(() -> new RuntimeException("Coupon not found: " + id));
     }
 
@@ -26,7 +25,7 @@ public class CouponService implements ICouponService {
     public List<Coupon> getAll() { return repo.findAll(); }
 
     @Override
-    public Coupon update(String id, Coupon c) {
+    public Coupon update(Long id, Coupon c) {
         Coupon existing = getById(id);
         existing.setCode(c.getCode());
         existing.setType(c.getType());
@@ -40,7 +39,7 @@ public class CouponService implements ICouponService {
     }
 
     @Override
-    public void delete(String id) { repo.deleteById(id); }
+    public void delete(Long id) { repo.deleteById(id); }
 
     @Override
     public Optional<Coupon> findByCode(String code) {

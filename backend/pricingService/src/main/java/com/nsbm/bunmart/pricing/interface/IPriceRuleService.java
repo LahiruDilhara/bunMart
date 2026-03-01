@@ -1,6 +1,7 @@
-package com.nsbm.bunmart.pricing.interface_;
+package com.nsbm.bunmart.pricing;
 
 import com.nsbm.bunmart.pricing.model.PriceRule;
+
 import java.util.List;
 
 public interface IPriceRuleService {

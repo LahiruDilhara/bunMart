@@ -1,6 +1,5 @@
 package com.nsbm.bunmart.pricing.services;
 
-import com.nsbm.bunmart.pricing.interface_.IPriceRuleService;
 import com.nsbm.bunmart.pricing.model.PriceRule;
 import com.nsbm.bunmart.pricing.repositories.PriceRuleRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,7 @@ public class PriceRuleService implements IPriceRuleService {
     public PriceRule create(PriceRule p) { return repo.save(p); }
 
     @Override
-    public PriceRule getById(String id) {
+    public PriceRule getById(Long id) {
         return repo.findById(id).orElseThrow(() -> new RuntimeException("PriceRule not found: " + id));
     }
 
@@ -25,7 +24,7 @@ public class PriceRuleService implements IPriceRuleService {
     public List<PriceRule> getAll() { return repo.findAll(); }
 
     @Override
-    public PriceRule update(String id, PriceRule p) {
+    public PriceRule update(Long id, PriceRule p) {
         PriceRule existing = getById(id);
         existing.setProductId(p.getProductId());
         existing.setUnitPrice(p.getUnitPrice());
@@ -35,7 +34,7 @@ public class PriceRuleService implements IPriceRuleService {
     }
 
     @Override
-    public void delete(String id) { repo.deleteById(id); }
+    public void delete(Long id) { repo.deleteById(id); }
 
     @Override
     public List<PriceRule> getByProductIds(List<String> productIds) {

@@ -1,6 +1,5 @@
 package com.nsbm.bunmart.pricing.controller;
 
-import com.nsbm.bunmart.pricing.interface_.IDiscountRuleService;
 import com.nsbm.bunmart.pricing.model.DiscountRule;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

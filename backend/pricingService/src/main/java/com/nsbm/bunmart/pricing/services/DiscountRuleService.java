@@ -1,6 +1,5 @@
 package com.nsbm.bunmart.pricing.services;
 
-import com.nsbm.bunmart.pricing.interface_.IDiscountRuleService;
 import com.nsbm.bunmart.pricing.model.DiscountRule;
 import com.nsbm.bunmart.pricing.repositories.DiscountRuleRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,7 @@ public class DiscountRuleService implements IDiscountRuleService {
     public DiscountRule create(DiscountRule d) { return repo.save(d); }
 
     @Override
-    public DiscountRule getById(String id) {
+    public DiscountRule getById(Long id) {
         return repo.findById(id).orElseThrow(() -> new RuntimeException("DiscountRule not found: " + id));
     }
 
@@ -25,7 +24,7 @@ public class DiscountRuleService implements IDiscountRuleService {
     public List<DiscountRule> getAll() { return repo.findAll(); }
 
     @Override
-    public DiscountRule update(String id, DiscountRule d) {
+    public DiscountRule update(Long id, DiscountRule d) {
         DiscountRule existing = getById(id);
         existing.setProductId(d.getProductId());
         existing.setCampaignId(d.getCampaignId());
@@ -37,7 +36,7 @@ public class DiscountRuleService implements IDiscountRuleService {
     }
 
     @Override
-    public void delete(String id) { repo.deleteById(id); }
+    public void delete(Long id) { repo.deleteById(id); }
 
     @Override
     public List<DiscountRule> getByProductIds(List<String> productIds) {

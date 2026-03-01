@@ -1,6 +1,7 @@
-package com.nsbm.bunmart.pricing.interface_;
+package com.nsbm.bunmart.pricing;
 
 import com.nsbm.bunmart.pricing.model.Campaign;
+
 import java.util.List;
 
 public interface ICampaignService {
