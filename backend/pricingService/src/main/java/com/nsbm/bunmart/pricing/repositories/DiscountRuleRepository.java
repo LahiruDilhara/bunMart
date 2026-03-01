@@ -1,4 +1,10 @@
 package com.nsbm.bunmart.pricing.repositories;
 
-public class DiscountRuleRepository {
+import com.nsbm.bunmart.pricing.model.DiscountRule;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
+
+public interface DiscountRuleRepository extends JpaRepository<DiscountRule, String> {
+    List<DiscountRule> findByProductIdInAndIsActiveTrue(List<String> productIds);
+    List<DiscountRule> findByProductIdAndIsActiveTrue(String productId);
 }
