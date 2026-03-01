@@ -15,8 +15,8 @@ import java.time.LocalDateTime;
 public class PriceRule {
 
     @Id
-    @Column(length = 36)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(name = "product_id", nullable = false, length = 36)
     private String productId;
@@ -38,7 +38,6 @@ public class PriceRule {
 
     @PrePersist
     public void prePersist() {
-        if (id == null) id = java.util.UUID.randomUUID().toString();
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
         if (isActive == null) isActive = true;

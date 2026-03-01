@@ -14,8 +14,8 @@ import java.time.LocalDateTime;
 public class Campaign {
 
     @Id
-    @Column(length = 36)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(nullable = false)
     private String name;
@@ -39,7 +39,6 @@ public class Campaign {
 
     @PrePersist
     public void prePersist() {
-        if (id == null) id = java.util.UUID.randomUUID().toString();
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
         if (isActive == null) isActive = true;

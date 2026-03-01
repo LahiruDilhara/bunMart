@@ -15,14 +15,14 @@ import java.time.LocalDateTime;
 public class DiscountRule {
 
     @Id
-    @Column(length = 36)
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(name = "product_id", length = 36)
     private String productId;
 
-    @Column(name = "campaign_id", length = 36)
-    private String campaignId;
+    @Column(name = "campaign_id")
+    private Long campaignId;
 
     @Column(nullable = false, length = 50)
     private String type;
@@ -43,7 +43,6 @@ public class DiscountRule {
 
     @PrePersist
     public void prePersist() {
-        if (id == null) id = java.util.UUID.randomUUID().toString();
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
         if (isActive == null) isActive = true;
