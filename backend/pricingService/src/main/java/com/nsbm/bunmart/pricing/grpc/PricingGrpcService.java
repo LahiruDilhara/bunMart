@@ -46,7 +46,7 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
         List<DiscountInfo> discountInfos = new ArrayList<>();
         for (DiscountRule rule : rules) {
             discountInfos.add(DiscountInfo.newBuilder()
-                    .setDiscountId(rule.getId())
+                    .setDiscountId(String.valueOf(rule.getId()))
                     .setProductId(rule.getProductId() != null ? rule.getProductId() : "")
                     .setType(rule.getType())
                     .setValue(rule.getValue().toPlainString())
@@ -76,7 +76,6 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
         String discountDescription = "";
         boolean couponApplied = false;
 
-        // Apply coupon if provided
         if (request.getCouponCode() != null && !request.getCouponCode().isBlank()) {
             Optional<Coupon> couponOpt = couponRepo.findByCodeAndIsActiveTrue(request.getCouponCode());
             if (couponOpt.isPresent()) {
@@ -122,7 +121,6 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
                     .build());
         }
 
-        // Apply coupons
         BigDecimal discountTotal = BigDecimal.ZERO;
         for (String couponCode : request.getCouponCodesList()) {
             Optional<Coupon> couponOpt = couponRepo.findByCodeAndIsActiveTrue(couponCode);
@@ -133,10 +131,9 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
         }
 
         BigDecimal total = subtotal.subtract(discountTotal).max(BigDecimal.ZERO);
-        String currency = lineResults.isEmpty() ? "USD" :
-                priceRuleRepo.findByProductIdAndIsActiveTrue(
-                                request.getItems(0).getProductId())
-                        .map(PriceRule::getCurrencyCode).orElse("USD");
+        String currency = priceRuleRepo.findByProductIdAndIsActiveTrue(
+                        request.getItemsCount() > 0 ? request.getItems(0).getProductId() : "")
+                .map(PriceRule::getCurrencyCode).orElse("USD");
 
         responseObserver.onNext(CalculateOrderPricingResponse.newBuilder()
                 .addAllLines(lineResults)
