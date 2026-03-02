@@ -78,7 +78,7 @@ public class VehicleService {
         // Update fields
         vehicle.setPlate_number(vehicleDTO.getPlate_number());
         vehicle.setType(vehicleDTO.getType());
-        vehicle.setActive(vehicle.isActive());
+        vehicle.setActive(vehicleDTO.isActive());
 
         // Save updated entity
         Vehicle updateVehicle = vehicleRepository.save(vehicle);
