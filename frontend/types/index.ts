@@ -12,6 +12,22 @@ export interface DriverDTO {
   active: boolean;
 }
 
+// ─── Vehicle ───────────────────────────────────────────────────────────────
+export type VehicleType = "VAN" | "CAR" | "BIKE" | "TRUCK";
+
+export interface Vehicle {
+  vehicle_id: number;
+  plate_number: string;
+  type: VehicleType;
+  active: boolean;
+}
+
+export interface VehicleDTO {
+  vehicle_id?: number;
+  plate_number: string;
+  type: VehicleType;
+  active: boolean;
+}
 
 // ─── UI Helpers ────────────────────────────────────────────────────────────
 export interface StatCard {
