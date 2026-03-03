@@ -4,6 +4,7 @@ import com.nsbm.bunmart.cart.errors.*;
 import com.nsbm.bunmart.cart.model.Cart;
 import com.nsbm.bunmart.cart.model.CartItem;
 import com.nsbm.bunmart.cart.repositories.CartRepository;
+import com.nsbm.bunmart.kitchen.v1.KitchenServiceGrpc;
 import com.nsbm.bunmart.order.v1.CreateOrderIntentRequest;
 import com.nsbm.bunmart.order.v1.OrderServiceGrpc;
 import io.grpc.StatusRuntimeException;
