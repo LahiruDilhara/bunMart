@@ -32,6 +32,13 @@ public class ShippingIntentController {
         return ResponseEntity.ok(shippingIntentDTO);
     }
 
+    // Get all shipping intents
+    @GetMapping("all-shippingIntents")
+    public ResponseEntity<List<ShippingIntentDTO>> getAllShippingIntents() {
+        List<ShippingIntentDTO> list = shippingIntentService.getAllShippingIntents();
+        return ResponseEntity.ok(list);
+    }
+
     // Get Shipping Intents by Status
     @GetMapping("/status/{status}")
     public ResponseEntity<List<ShippingIntentDTO>> getShippingIntentsByStatus(@PathVariable String status){

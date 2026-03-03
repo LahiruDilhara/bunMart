@@ -29,6 +29,64 @@ export interface VehicleDTO {
   active: boolean;
 }
 
+// ─── Shipping Intent ───────────────────────────────────────────────────────
+export type ShippingIntentStatus =
+  | "PENDING"
+  | "PROCESSING"
+  | "COMPLETED"
+  | "CANCELLED";
+
+export interface ShippingIntent {
+  shipping_intent_id: number;
+  orderId: string;
+  userId: number;
+  addressId: number;
+  status: ShippingIntentStatus;
+  created_at: string;
+}
+
+// ─── Shipment ──────────────────────────────────────────────────────────────
+export type ShippingStatus =
+  | "PENDING"
+  | "DISPATCHED"
+  | "IN_TRANSIT"
+  | "DELIVERED"
+  | "CANCELLED";
+
+export interface Shipment {
+  intentName: string;
+  driver: unknown;
+  vehicle: unknown;
+  shipmentId: number;
+  trackingNumber: number;
+  driverId: number;
+  vehicleId: number;
+  shippingIntentId: number;
+  status: ShippingStatus;
+  startedAt: string | null;
+  deliveredAt: string | null;
+}
+
+export interface ShipmentDTO {
+  shipmentId?: number;
+  trackingNumber?: number;
+  driverId: number;
+  vehicleId: number;
+  shippingIntentId: number;
+  status: string;
+  startedAt?: string | null;
+  deliveredAt?: string | null;
+}
+
+export interface ShippingIntentDTO {
+  shipping_intent_id?: number;
+  orderId: string;
+  userId: number;
+  addressId: number;
+  status?: ShippingIntentStatus;
+  created_at?: string;
+}
+
 // ─── UI Helpers ────────────────────────────────────────────────────────────
 export interface StatCard {
   label: string;

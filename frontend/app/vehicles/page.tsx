@@ -20,7 +20,7 @@ export default function VehiclesPage() {
   const [deleteVehicle, setDeleteVehicle] = useState<Vehicle | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  // ✅ Load data from backend
+  // Load data from backend
   useEffect(() => {
     loadVehicles();
   }, []);
@@ -48,7 +48,7 @@ export default function VehiclesPage() {
     setFormOpen(true);
   };
 
-  // ✅ Create + Update
+  // Create + Update
   const handleSave = async (dto: VehicleDTO) => {
     try {
       if (editVehicle) {
@@ -71,7 +71,7 @@ export default function VehiclesPage() {
     }
   };
 
-  // ✅ Delete
+  // Delete
   const handleDelete = async () => {
     if (!deleteVehicle) return;
 

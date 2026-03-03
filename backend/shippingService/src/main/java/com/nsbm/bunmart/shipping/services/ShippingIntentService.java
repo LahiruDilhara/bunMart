@@ -5,9 +5,7 @@ import com.nsbm.bunmart.shipping.model.ShippingIntent;
 import com.nsbm.bunmart.shipping.model.ShippingIntentStatus;
 import com.nsbm.bunmart.shipping.repositories.ShippingIntentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -64,6 +62,21 @@ public class ShippingIntentService {
                 .build();
 
         return shippingIntentDTO;
+    }
+
+    // Get all shipping intents
+    public List<ShippingIntentDTO> getAllShippingIntents() {
+        return shippingIntentRepository.findAll()
+                .stream()
+                .map(intent -> ShippingIntentDTO.builder()
+                        .shipping_intent_id(intent.getShipping_intent_id())
+                        .orderId(intent.getOrderId())
+                        .userId(intent.getUserId())
+                        .addressId(intent.getAddressId())
+                        .status(intent.getStatus())
+                        .created_at(intent.getCreated_at())
+                        .build())
+                .toList();
     }
 
     //  Get Shipping Intents by Status
