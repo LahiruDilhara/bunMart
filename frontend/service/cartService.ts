@@ -15,7 +15,8 @@ import type {
 const getBaseUrl = () =>
   process.env.NEXT_PUBLIC_CART_SERVICE_URL ?? "http://localhost:8080";
 
-const useMockCart = () => process.env.NEXT_PUBLIC_MOCK_CART === "true";
+const isMockCartEnabled = () =>
+  process.env.NEXT_PUBLIC_MOCK_CART === "true";
 
 const cartClient = axios.create({
   baseURL: getBaseUrl(),
@@ -75,7 +76,7 @@ function getMockCart(): Cart {
 
 /** Fetch current cart (e.g. GET /cart or /api/cart). */
 export async function getCart(): Promise<Cart> {
-  if (useMockCart()) return Promise.resolve(getMockCart());
+  if (isMockCartEnabled()) return Promise.resolve(getMockCart());
   const { data } = await cartClient.get<Cart>("/cart");
   return data;
 }
