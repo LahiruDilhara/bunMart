@@ -83,11 +83,10 @@ export default function ShippingIntentsPage() {
           <button
             key={status}
             onClick={() => setStatusFilter(statusFilter === status ? "" : status)}
-            className={`px-4 py-1.5 rounded-full text-xs border transition-all ${
-              statusFilter === status
+            className={`px-4 py-1.5 rounded-full text-xs border transition-all ${statusFilter === status
                 ? "bg-accent/10 border-accent text-accent"
                 : "bg-surface border-border text-muted hover:text-white"
-            }`}
+              }`}
           >
             <IntentStatusBadge status={status} />
             <span className="ml-2 font-bold font-syne">{count}</span>
@@ -171,4 +170,4 @@ export default function ShippingIntentsPage() {
       />
     </div>
   );
-}
+} 
