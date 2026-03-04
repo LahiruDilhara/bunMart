@@ -28,7 +28,7 @@ public class PaymentGrpcController extends PaymentServiceGrpc.PaymentServiceImpl
     // NOT_FOUND = 404, ALREADY_EXISTS = 409, INTERNAL = 500
     private Throwable mapToGrpcError(Exception e) {
         if (e instanceof PaymentNotFoundException) {
-            return Status.INTERNAL
+            return Status.NOT_FOUND
                     .withDescription(e.getMessage())
                     .asRuntimeException();
         }
