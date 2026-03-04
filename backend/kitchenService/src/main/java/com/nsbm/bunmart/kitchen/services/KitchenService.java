@@ -147,6 +147,4 @@ public class KitchenService {
     }
 
     //  gRPC CLIENT: Notify Order Service
-
-
 }
