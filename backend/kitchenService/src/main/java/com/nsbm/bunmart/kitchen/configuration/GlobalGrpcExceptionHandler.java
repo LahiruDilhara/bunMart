@@ -1,45 +1,44 @@
 package com.nsbm.bunmart.kitchen.configuration;
 
+import com.nsbm.bunmart.kitchen.errors.ImageNotFoundException;
+import com.nsbm.bunmart.kitchen.errors.OrderServiceUnavailableException;
+import com.nsbm.bunmart.kitchen.errors.ProductionOrderNotFoundException;
+import com.nsbm.bunmart.kitchen.errors.ProductionOrderNotSavedException;
 import io.grpc.Status;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.server.advice.GrpcAdvice;
 import net.devh.boot.grpc.server.advice.GrpcExceptionHandler;
-import jakarta.persistence.EntityNotFoundException;
 
 @Slf4j
 @GrpcAdvice
 public class GlobalGrpcExceptionHandler {
 
-    // Handle specific "Not Found" cases (e.g., Recipe or Order missing)
-    @GrpcExceptionHandler(EntityNotFoundException.class)
-    public Status handleResourceNotFound(EntityNotFoundException e) {
-        log.warn("Resource not found: {}", e.getMessage());
-        return Status.NOT_FOUND
-                .withDescription(e.getMessage())
-                .withCause(e);
+    @GrpcExceptionHandler(ProductionOrderNotFoundException.class)
+    public Status handleNotFound(ProductionOrderNotFoundException e) {
+        log.error(e.getMessage());
+        return Status.NOT_FOUND.withDescription("Production order not found");
     }
 
-    // Handle business logic violations (e.g., trying to cook an already canceled order)
-    @GrpcExceptionHandler(IllegalStateException.class)
-    public Status handleIllegalState(IllegalStateException e) {
-        log.warn("Business logic violation: {}", e.getMessage());
-        return Status.FAILED_PRECONDITION
-                .withDescription(e.getMessage())
-                .withCause(e);
+    @GrpcExceptionHandler(ProductionOrderNotSavedException.class)
+    public Status handleNotSaved(ProductionOrderNotSavedException e) {
+        log.error(e.getMessage());
+        return Status.INTERNAL.withDescription("Failed to save production order");
     }
 
-    // Handle Validation/Argument errors
-    @GrpcExceptionHandler(IllegalArgumentException.class)
-    public Status handleInvalidArgument(IllegalArgumentException e) {
-        log.warn("Invalid argument received: {}", e.getMessage());
-        return Status.INVALID_ARGUMENT
-                .withDescription(e.getMessage())
-                .withCause(e);
+    @GrpcExceptionHandler(ImageNotFoundException.class)
+    public Status handleImageNotFound(ImageNotFoundException e) {
+        log.error(e.getMessage());
+        return Status.NOT_FOUND.withDescription("Image not found");
     }
 
-    //Fallback for everything else
+    @GrpcExceptionHandler(OrderServiceUnavailableException.class)
+    public Status handleOrderUnavailable(OrderServiceUnavailableException e) {
+        log.error(e.getMessage());
+        return Status.UNAVAILABLE.withDescription("Order service unavailable");
+    }
+
     @GrpcExceptionHandler(Exception.class)
-    public Status handleGenericException(Exception e){
+    public Status handleGenericException(Exception e) {
         log.error(e.getMessage());
         return Status.INTERNAL.withDescription("Internal server error");
     }
