@@ -24,6 +24,10 @@ public class DiscountRule {
     @Column(name = "campaign_id")
     private Long campaignId;
 
+    @ManyToOne
+    @JoinColumn(name = "campaign_id", insertable = false, updatable = false)
+    private Campaign campaign;
+
     @Column(nullable = false, length = 50)
     private String type;
 
