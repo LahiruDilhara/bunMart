@@ -24,7 +24,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleNotFound(PaymentNotFoundException e) {
         log.warn("payment not found -> {}", e.getMessage());
         return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .status(HttpStatus.NOT_FOUND)
                 .body(Map.of(
                         "error",     "PAYMENT_NOT_FOUND",
                         "message",   e.getMessage(),
