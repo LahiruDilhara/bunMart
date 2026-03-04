@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class OrderResponseDTO {
-    private Integer id;
+    private String id;
     private String userId;
     private String status;
     private String subtotal;
@@ -23,11 +23,11 @@ public class OrderResponseDTO {
     public OrderResponseDTO() {
     }
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 

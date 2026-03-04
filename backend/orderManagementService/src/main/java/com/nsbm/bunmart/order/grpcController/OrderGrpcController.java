@@ -21,7 +21,8 @@ public class OrderGrpcController extends OrderServiceGrpc.OrderServiceImplBase {
                 this.orderGrpcMapper = orderGrpcMapper;
         }
 
- 
+        
+
 
         @Override
         public void createOrderIntent(CreateOrderIntentRequest request,
@@ -38,49 +39,51 @@ public class OrderGrpcController extends OrderServiceGrpc.OrderServiceImplBase {
                 responseObserver.onCompleted();
         }
 
-    
+       
 
         @Override
         public void getOrder(GetOrderRequest request,
                         StreamObserver<GetOrderResponse> responseObserver) {
                 log.info("gRPC GetOrder called for orderId={}", request.getOrderId());
-                Order order = orderService.getOrder(Integer.parseInt(request.getOrderId()));
+                Order order = orderService.getOrder(request.getOrderId());
                 responseObserver.onNext(orderGrpcMapper.orderToGetOrderResponse(order));
                 responseObserver.onCompleted();
         }
 
-      
+        
+
 
         @Override
         public void getOrderStatus(GetOrderStatusRequest request,
                         StreamObserver<GetOrderStatusResponse> responseObserver) {
                 log.info("gRPC GetOrderStatus called for orderId={}", request.getOrderId());
-                Order order = orderService.getOrder(Integer.parseInt(request.getOrderId()));
+                Order order = orderService.getOrder(request.getOrderId());
                 responseObserver.onNext(orderGrpcMapper.orderToGetOrderStatusResponse(order));
                 responseObserver.onCompleted();
         }
 
- 
+        
 
         @Override
         public void updateOrderWithDetails(UpdateOrderWithDetailsRequest request,
                         StreamObserver<UpdateOrderWithDetailsResponse> responseObserver) {
                 log.info("gRPC UpdateOrderWithDetails called for orderId={}", request.getOrderId());
                 Order order = orderService.updateOrderWithDetails(
-                                Integer.parseInt(request.getOrderId()),
+                                request.getOrderId(),
                                 request.getCouponCodesList(),
                                 request.getAddressId());
                 responseObserver.onNext(orderGrpcMapper.orderToUpdateOrderWithDetailsResponse(order));
                 responseObserver.onCompleted();
         }
 
+        
 
         @Override
         public void requestPaymentIntent(RequestPaymentIntentRequest request,
                         StreamObserver<RequestPaymentIntentResponse> responseObserver) {
                 log.info("gRPC RequestPaymentIntent called for orderId={}", request.getOrderId());
                 var paymentResponse = orderService.requestPaymentIntent(
-                                Integer.parseInt(request.getOrderId()));
+                                request.getOrderId());
                 responseObserver.onNext(
                                 RequestPaymentIntentResponse.newBuilder()
                                                 .setPaymentIntentId(paymentResponse.getPaymentId())
@@ -88,7 +91,8 @@ public class OrderGrpcController extends OrderServiceGrpc.OrderServiceImplBase {
                 responseObserver.onCompleted();
         }
 
-   
+        
+
         @Override
         public void notifyOrderPrepared(NotifyOrderPreparedRequest request,
                         StreamObserver<NotifyOrderPreparedResponse> responseObserver) {
@@ -101,7 +105,7 @@ public class OrderGrpcController extends OrderServiceGrpc.OrderServiceImplBase {
                 responseObserver.onCompleted();
         }
 
-  
+        
 
         @Override
         public void setOrderShipping(SetOrderShippingRequest request,

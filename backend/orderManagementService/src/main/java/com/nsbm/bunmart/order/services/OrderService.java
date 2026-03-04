@@ -39,7 +39,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
 
-  
+    // gRPC client stubs 
     @GrpcClient("cartService")
     private CartServiceGrpc.CartServiceBlockingStub cartStub;
 
@@ -59,7 +59,7 @@ public class OrderService {
         this.orderRepository = orderRepository;
     }
 
-
+    
     public Order createOrderIntent(String userId,
             List<CreateOrderIntentRequest.CartLine> items,
             String cartId) {
@@ -70,12 +70,11 @@ public class OrderService {
             order.setCartId(cartId);
         }
 
-     
+       
         List<OrderLine> lines = items.stream().map(item -> {
             OrderLine line = new OrderLine();
             line.setProductId(item.getProductId());
             line.setQuantity(item.getQuantity());
-            line.setOrder(order);
             return line;
         }).collect(Collectors.toCollection(ArrayList::new));
 
@@ -102,16 +101,17 @@ public class OrderService {
                                 .build());
             } catch (StatusRuntimeException e) {
                 log.warn("Cart invalidation failed (non-blocking): {}", e.getMessage());
-                // Non-blocking - order creation still succeeds
+                
             }
         }
 
         return saved;
     }
 
- 
+   
 
-    public Order getOrder(Integer id) {
+
+    public Order getOrder(String id) {
         return orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException("Order not found for id: " + id));
     }
@@ -120,9 +120,9 @@ public class OrderService {
         return orderRepository.findByUserId(userId);
     }
 
-   
-   
-    public Order updateOrderWithDetails(Integer id, List<String> couponCodes, String addressId) {
+    
+
+    public Order updateOrderWithDetails(String id, List<String> couponCodes, String addressId) {
         Order order = getOrder(id);
 
         List<CalculateOrderPricingRequest.LineItem> lineItems = order.getOrderLines().stream()
@@ -146,7 +146,7 @@ public class OrderService {
             throw new PricingServiceUnavailableException("Pricing service unavailable");
         }
 
-        // Update each order line with the pricing result
+       
         pricingResponse.getLinesList().forEach(lineResult -> {
             order.getOrderLines().stream()
                     .filter(l -> l.getProductId().equals(lineResult.getProductId()))
@@ -175,7 +175,9 @@ public class OrderService {
         }
     }
 
-    public CreatePaymentIntentResponse requestPaymentIntent(Integer id) {
+    
+
+    public CreatePaymentIntentResponse requestPaymentIntent(String id) {
         Order order = getOrder(id);
 
         if (!"PENDING".equals(order.getStatus())) {
@@ -202,15 +204,16 @@ public class OrderService {
         }
     }
 
- 
-    public Order markOrderPaid(Integer id) {
+    
+
+    public Order markOrderPaid(String id) {
         Order order = getOrder(id);
         order.setStatus("PAID");
         return saveOrThrow(order);
     }
 
-  
-    public String produceOrder(Integer id) {
+
+    public String produceOrder(String id) {
         Order order = getOrder(id);
         if (!"PAID".equals(order.getStatus())) {
             throw new InvalidOrderStateException(
@@ -245,26 +248,27 @@ public class OrderService {
         return productionOrderId;
     }
 
-
+    
 
 
     public void notifyOrderPrepared(String userOrderId) {
-        Integer id = Integer.parseInt(userOrderId);
+        String id = userOrderId;
         Order order = getOrder(id);
         order.setStatus("PREPARED");
         saveOrThrow(order);
     }
 
+    
 
-
-    public Order updateOrderStatus(Integer id, String newStatus) {
+    public Order updateOrderStatus(String id, String newStatus) {
         Order order = getOrder(id);
         order.setStatus(newStatus);
         return saveOrThrow(order);
     }
 
-  
-    public String shipOrder(Integer id) {
+    
+
+    public String shipOrder(String id) {
         Order order = getOrder(id);
         if (!"PACKED".equals(order.getStatus())) {
             throw new InvalidOrderStateException(
@@ -297,21 +301,21 @@ public class OrderService {
         return shipmentId;
     }
 
+    
 
 
     public void setOrderShipping(String orderId) {
-        Integer id = Integer.parseInt(orderId);
+        String id = orderId;
         Order order = getOrder(id);
         order.setStatus("SHIPPING");
         saveOrThrow(order);
     }
 
-   
+    
 
-
-    public Order addOrderNote(Integer id, String noteText) {
+    public Order addOrderNote(String id, String noteText) {
         Order order = getOrder(id);
-        OrderNote note = new OrderNote(noteText, order);
+        OrderNote note = new OrderNote(noteText);
         order.getNotes().add(note);
         return saveOrThrow(order);
     }
@@ -319,7 +323,7 @@ public class OrderService {
     
 
 
-    public Order cancelOrder(Integer id) {
+    public Order cancelOrder(String id) {
         Order order = getOrder(id);
         if ("SHIPPING".equals(order.getStatus()) || "SHIPPED".equals(order.getStatus())) {
             throw new InvalidOrderStateException(
@@ -329,9 +333,8 @@ public class OrderService {
         return saveOrThrow(order);
     }
 
-  
     
-
+    
     private Order saveOrThrow(Order order) {
         try {
             return orderRepository.save(order);
