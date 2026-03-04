@@ -130,6 +130,7 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
+    @Transactional
     public Payment handleWebhookResult(String stripePaymentIntentId, boolean success) {
 
         if (stripePaymentIntentId == null || stripePaymentIntentId.isBlank())
