@@ -1,9 +1,14 @@
 package com.nsbm.bunmart.order.model;
 
+import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "order_note")
 public class OrderNote {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     private String note;

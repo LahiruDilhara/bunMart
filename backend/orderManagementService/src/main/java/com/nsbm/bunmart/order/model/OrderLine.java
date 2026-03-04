@@ -1,14 +1,19 @@
 package com.nsbm.bunmart.order.model;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "order_line")
 public class OrderLine {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     private String productId;
 
     private Integer quantity;
 
-    
     private String unitPrice;
     private String lineTotal;
 
