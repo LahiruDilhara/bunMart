@@ -17,7 +17,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 @RestControllerAdvice
 public class GlobalRestExceptionHandler {
 
-    // 1. Handling Business Logic Failures (e.g., Kitchen Busy, Out of Stock)
+    //  Handling Business Logic Failures
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ErrorResponseDTO> handleIllegalState(IllegalStateException e) {
         log.warn("Business rule violation: {}", e.getMessage());
@@ -25,7 +25,7 @@ public class GlobalRestExceptionHandler {
                 .body(new ErrorResponseDTO(e.getMessage()));
     }
 
-    // 2. Handling Missing Resources (e.g., GET /kitchen/order/999 where 999 doesn't exist)
+    //  Handling Missing Resources
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ErrorResponseDTO> handleNotFound(EntityNotFoundException e) {
         log.warn("Resource not found: {}", e.getMessage());
@@ -33,9 +33,8 @@ public class GlobalRestExceptionHandler {
                 .body(new ErrorResponseDTO(e.getMessage()));
     }
 
-    // 3. Handling Downstream Service Failures (Your custom exception)
 
-    // 4. Handling Input Validation & Bad Requests
+    //  Handling Input Validation & Bad Requests
     @ExceptionHandler({
             MethodArgumentNotValidException.class,
             ConstraintViolationException.class,
@@ -49,7 +48,7 @@ public class GlobalRestExceptionHandler {
                 .body(new ErrorResponseDTO("Invalid request data provided"));
     }
 
-    // 5. Global Fallback for Uncaught Exceptions
+    // Global Fallback for Uncaught Exceptions
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDTO> handleGeneric(Exception e){
         log.error("Unexpected error occurred in Kitchen Service: ", e);
