@@ -32,7 +32,7 @@ export interface VehicleDTO {
 // ─── Shipping Intent ───────────────────────────────────────────────────────
 export type ShippingIntentStatus =
   | "PENDING"
-  | "PROCESSING"
+  | "ASSIGNED"
   | "COMPLETED"
   | "CANCELLED";
 
