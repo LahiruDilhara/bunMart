@@ -34,7 +34,7 @@ public class StripePaymentService implements PaymentGatewayService {
         // it needs the smallest unit of the currency
         // so 1000 LKR needs to be sent as 100000
         long amountInSmallestUnit = amount
-                .multiply(BigDecimal.valueOf(10))
+                .multiply(BigDecimal.valueOf(100))
                 .longValue();
 
         // attach our order details to the stripe payment
