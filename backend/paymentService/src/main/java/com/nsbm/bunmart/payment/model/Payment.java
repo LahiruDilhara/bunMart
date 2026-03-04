@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 public class Payment {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "payment_id")
     private String paymentId;
 
