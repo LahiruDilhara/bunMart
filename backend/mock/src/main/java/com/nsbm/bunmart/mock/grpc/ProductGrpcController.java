@@ -23,7 +23,9 @@ public class ProductGrpcController extends ProductCatalogServiceGrpc.ProductCata
                 .setName("Mock Product " + request.getProductId())
                 .setDescription("Mock product description")
                 .setCategoryId("cat-1")
+                .addTagIds("tag-1")
                 .setImageUrl("/images/mock-product.png")
+                .addImageUrls("/images/mock-product.png")
                 .setCreatedAt(now())
                 .setUpdatedAt(now())
                 .build();
@@ -41,7 +43,9 @@ public class ProductGrpcController extends ProductCatalogServiceGrpc.ProductCata
                     .setName("Mock Product " + productId)
                     .setDescription("Mock product description")
                     .setCategoryId("cat-1")
+                    .addTagIds("tag-1")
                     .setImageUrl("/images/mock-product.png")
+                    .addImageUrls("/images/mock-product.png")
                     .setCreatedAt(now())
                     .setUpdatedAt(now())
                     .build());

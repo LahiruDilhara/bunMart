@@ -16,7 +16,7 @@ Backend for the BunMart e-commerce platform. Ten microservices handle product ca
 - [Who calls whom](./WHO_CALLS_WHOM.md) (call matrix)
 - [Proto definitions (proto-first)](./proto/README.md) — `./proto/` per-service `.proto` files
 - [Checkout and payment flow (intent-driven)](#checkout-and-payment-flow-intent-driven)
-- [How services handle business logic](#how-servicimage.pnges-handle-business-logic)
+- [How services handle business logic](#how-services-handle-business-logic)
 - [Project Structure](#project-structure)
 
 ---
@@ -116,14 +116,14 @@ Feeds: **Order** (full price and reductions on order page when user has applied 
 
 ### 4. Shopping Cart Service
 
-The Shopping Cart Service manages temporary user carts. **Add-to-cart**: the frontend does **not** call the Cart Service directly; the frontend calls the **Product Catalog** **via REST**, and the Product Catalog calls the **Cart Service** **via gRPC** `AddCartItem` to add the item to the user's cart. When the user goes to **checkout**, the request goes to the Cart Service (frontend calls Cart **via REST**). The Cart Service prepares **order intent details** from the user's selected items (product_id, quantity only) and calls the Order Service with this order intent to create the order. The Cart Service responds to the frontend with the **order intent id**; the frontend then redirects the user to the order page with this intentId. When the order is placed, Order calls **Cart.InvalidateCart** **via gRPC** with **cart_id**, **order_id**, and the **exact product_id list** from the order; Cart removes only those items (user may have selected only a subset of cart items for this order). Coupon setup is on the **order/payment page**, not the cart. Administrators can manage cart policies and optional cart metadata. Full CRUD on cart items and cart notes.
+The Shopping Cart Service manages temporary user carts. **Add-to-cart**: the frontend does **not** call the Cart Service directly; the frontend calls the **Product Catalog** **via REST**, and the Product Catalog calls the **Cart Service** **via gRPC** `AddCartItem` to add the item to the user's cart. When the user goes to **checkout**, the request goes to the Cart Service (frontend calls Cart **via REST**). The Cart Service prepares **order intent details** from the user's selected items (product_id, quantity only) and calls the Order Service with this order intent to create the order. The Cart Service responds to the frontend with the **order intent id**; the frontend then redirects the user to the order page with this intentId. When the order is placed, Order calls **Cart.InvalidateCart** **via gRPC** with **user_id** and the **exact product_id list** from the order; Cart removes only those items (user may have selected only a subset of cart items for this order). Coupon setup is on the **order/payment page**, not the cart. Administrators can manage cart policies and optional cart metadata. Full CRUD on cart items and cart notes.
 
 - **CREATE**: Cart, cart items, cart notes.
 - **READ**: Cart by user/session, cart items, notes.
 - **UPDATE**: Quantities, notes; cart policies and metadata (admin).
 - **DELETE**: Cart, cart items, notes.
 
-Interacts with: **Product Catalog** (Cart is called **via gRPC** `AddCartItem` when Product Catalog receives add-to-cart from frontend); **Order** (at checkout Cart calls **Order.CreateOrderIntent** **via gRPC** with user_id and items; Cart returns **order intent id** to frontend; Order calls **Cart.InvalidateCart** **via gRPC** after order is placed with **cart_id**, **order_id**, and **product_ids** so only the ordered items are removed from the cart).
+Interacts with: **Product Catalog** (Cart is called **via gRPC** `AddCartItem` when Product Catalog receives add-to-cart from frontend); **Order** (at checkout Cart calls **Order.CreateOrderIntent** **via gRPC** with user_id and items; Cart returns **order intent id** to frontend; Order calls **Cart.InvalidateCart** **via gRPC** after order is placed with **user_id** and **product_ids** so only the ordered items are removed from the cart).
 
 ---
 
@@ -136,7 +136,7 @@ The Order Service manages customer orders in an **intent-driven** way. The Cart 
 - **UPDATE**: Order with coupons and delivery; order states (including packed via admin); notes.
 - **DELETE**: Archive/cancel orders (policy defined by service).
 
-Interacts with: **Cart** (receives order intent at checkout; returns intent id via Cart response; calls Cart.InvalidateCart **via gRPC** after order is placed with **cart_id**, **order_id**, and **product_ids** so only the ordered items are removed from the cart), **User Management** (GetUser, GetUserAddresses, ValidateUser **via gRPC** for shipping/address), **Pricing & Promotion** (CalculateOrderPricing **via gRPC** when building full order—Order stores product_id, quantity, unit_price, line_total; does not call Product Catalog; BFF enriches order for display), **Payment** (CreatePaymentIntent **via gRPC** when user presses Pay; orders eligible for production after success), **Kitchen** (Order calls Kitchen **via gRPC** CreateProductionOrder when admin triggers produce; Kitchen returns production_order_id; Kitchen notifies Order **via gRPC** NotifyOrderPrepared when production is completed), **Shipping** (Order calls Shipping **via gRPC** to create shipping intent when admin presses Shipped; Shipping returns shipping intent id; Shipping notifies Order **via gRPC** to set order state to shipping when admin/driver submit), **Notification** (SendNotification **via gRPC**). Order does **not** call Product Catalog; BFF aggregates product details for order display.
+Interacts with: **Cart** (receives order intent at checkout; returns intent id via Cart response; calls Cart.InvalidateCart **via gRPC** after order is placed with **user_id** and **product_ids** so only the ordered items are removed from the cart), **User Management** (GetUser, GetUserAddresses, ValidateUser **via gRPC** for shipping/address), **Pricing & Promotion** (CalculateOrderPricing **via gRPC** when building full order—Order stores product_id, quantity, unit_price, line_total; does not call Product Catalog; BFF enriches order for display), **Payment** (CreatePaymentIntent **via gRPC** when user presses Pay; orders eligible for production after success), **Kitchen** (Order calls Kitchen **via gRPC** CreateProductionOrder when admin triggers produce; Kitchen returns production_order_id; Kitchen notifies Order **via gRPC** NotifyOrderPrepared when production is completed), **Shipping** (Order calls Shipping **via gRPC** to create shipping intent when admin presses Shipped; Shipping returns shipping intent id; Shipping notifies Order **via gRPC** to set order state to shipping when admin/driver submit), **Notification** (SendNotification **via gRPC**). Order does **not** call Product Catalog; BFF aggregates product details for order display.
 
 ---
 
@@ -437,68 +437,58 @@ message CartItemInfo {
   string cart_item_id = 1;
   string product_id = 2;
   int32 quantity = 3;
-  string unit_price = 4;   // optional; display-only
-  string line_total = 5;   // optional; display-only
 }
 
 message CartInfo {
   string cart_id = 1;
   string user_id = 2;
   repeated CartItemInfo items = 3;
-  // No coupon in cart; coupons are applied on the order/payment page.
-  string subtotal = 4;   // optional; display-only
-  string discount_total = 5;
-  string total = 6;
-  string currency_code = 7;
+  string total = 4;
 }
 
-message GetCartRequest { string user_id = 1; string session_id = 2; }
-message GetCartResponse { CartInfo cart = 1; }
+message GetCartRequest {
+  string user_id = 1;
+}
+
+message GetCartResponse {
+  CartInfo cart = 1;
+}
 
 // Product Catalog calls this when frontend requests add-to-cart (frontend does not call Cart directly).
 message AddCartItemRequest {
   string user_id = 1;
   string product_id = 2;
   int32 quantity = 3;
-  string cart_id = 4;      // optional; if provided, add to this cart; otherwise create or use session cart
-  string session_id = 5;   // optional; for anonymous/session-based cart
 }
+
 message AddCartItemResponse {
   string cart_id = 1;
-  CartInfo cart = 2;       // updated cart after add
+  CartInfo cart = 2;   // updated cart after add
 }
 
-message GetCartForCheckoutRequest { string user_id = 1; string session_id = 2; }
-message GetCartForCheckoutResponse {
-  CartInfo cart = 1;
-  bool valid = 2;
-  repeated string errors = 3;
-}
-
-// When order is placed, Order calls Cart with the exact product_id list that was in the order.
-// User may select only a subset of cart items for this order; only those items are removed from the cart.
 message InvalidateCartRequest {
-  string cart_id = 1;
-  string order_id = 2;
-  repeated string product_ids = 3;   // exact product_ids that were in the order; only these are removed from the cart
+  string user_id = 1;
+  repeated string product_ids = 3;
 }
-message InvalidateCartResponse { bool invalidated = 1; }
+
+message InvalidateCartResponse {
+  bool invalidated = 1;
+}
 ```
 
-**Service:** `CartService` — `GetCart`, `AddCartItem`, `GetCartForCheckout`, `InvalidateCart`
+**Service:** `CartService` — `GetCart`, `AddCartItem`, `InvalidateCart`
 
 **Message and RPC use cases**
 
-| Message / RPC          | Use case                                                                                                                                                                                                                                                                                           |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **CartItemInfo**       | One line: **product_id, quantity** (and optional display unit_price/line_total). Cart provides **only** this cart data — no coupons, no address, no pricing. Coupons are applied on the order page.                                                                                                |
-| **CartInfo**           | Cart data only: items (product_id, quantity). No coupons, no user location or address.                                                                                                                                                                                                             |
-| **GetCart**            | **gRPC:** Service-to-service only (if another service needs cart data). Frontend loads cart **via REST** (e.g. GET /carts/{id}); BFF may enrich with product details from Product Catalog.                                                                                                         |
-| **AddCartItem**        | **gRPC:** **Product Catalog** calls Cart when the frontend requests add-to-cart. Frontend does **not** call Cart Service directly for adding items — it calls Product Catalog **via REST** (e.g. POST /products/{id}/add-to-cart); Product Catalog then calls **Cart.AddCartItem** **via gRPC** with user_id, product_id, quantity. Cart may call **Product Catalog.ValidateProducts** to ensure product exists, then creates/updates cart and returns cart_id and updated cart. |
-| **GetCartForCheckout** | At checkout, frontend calls Cart **via REST**; Cart service then calls **Order.CreateOrderIntent** **via gRPC** (user_id, items only) and returns order intent id to frontend; frontend redirects to order page.                                                                                   |
-| **InvalidateCart**     | **gRPC:** Order calls Cart after order is created with **cart_id**, **order_id**, and **product_ids** (the exact product_id list that was in the order). Cart removes only those items from the cart; other cart items remain.                                                                     |
+| Message / RPC     | Use case                                                                                                                                                                                                                                                                                           |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **CartItemInfo**  | One line: **cart_item_id**, **product_id**, **quantity**. Cart provides only this cart data — no coupons, no pricing. Coupons are applied on the order page.                                                                                                                                       |
+| **CartInfo**      | Cart data: cart_id, user_id, items (product_id, quantity per line), and total. No coupons, no user location or address.                                                                                                                                                                           |
+| **GetCart**       | **gRPC:** Service-to-service or frontend via REST. Returns cart for the given user_id. BFF may enrich with product details from Product Catalog.                                                                                                                                                   |
+| **AddCartItem**   | **gRPC:** **Product Catalog** calls Cart when the frontend requests add-to-cart. Request: user_id, product_id, quantity. Response: cart_id and updated CartInfo. Frontend does **not** call Cart Service directly — it calls Product Catalog **via REST**; Product Catalog then calls **Cart.AddCartItem** **via gRPC**. |
+| **InvalidateCart**| **gRPC:** Order (or Cart after checkout) calls Cart with **user_id** and **product_ids** (the exact product_id list to remove, e.g. items that were in the placed order). Cart removes only those items from the user's cart; other cart items remain.                                              |
 
-**Consumers**: **Product Catalog** (AddCartItem **via gRPC** when frontend requests add-to-cart); Order (InvalidateCart **via gRPC** after order created). **Cart calls** (via gRPC): **Product Catalog** (ValidateProducts when adding item or at checkout), **User** (ValidateUser), **Order** (CreateOrderIntent), and optionally **Notification** (SendNotification for abandoned cart). Cart responds to frontend with **order intent id** at checkout; frontend redirects to order page with this id.
+**Consumers**: **Product Catalog** (AddCartItem **via gRPC** when frontend requests add-to-cart); **Order** (InvalidateCart **via gRPC** after order is placed, with user_id and product_ids). **Cart calls** (via gRPC): **Order** (CreateOrderIntent at checkout). Cart responds to frontend with **order intent id** at checkout via REST; frontend redirects to order page with this id.
 
 ---
 
@@ -551,7 +541,7 @@ message CreateOrderIntentRequest {
     int32 quantity = 2;
   }
   repeated CartLine items = 2;
-  string cart_id = 3;   // optional; so Order can call Cart.InvalidateCart after creating the order (with product_ids from this order)
+  string cart_id = 3;   // optional; so Order can pass cart context; Cart removes items by user_id and product_ids via InvalidateCart when order is placed
 }
 
 message CreateOrderIntentResponse {
@@ -579,7 +569,7 @@ message RequestPaymentIntentResponse {
 **CreateOrderIntent flow (intent-driven)**
 
 - **Cart service** calls Order.CreateOrderIntent at checkout with **user_id**, **items** (product_id, quantity per line), and optional **cart_id**. Cart does **not** send coupon_codes (coupons are applied on the order page). Cart responds to the frontend with **order_id** (order intent id).
-- **Order service** creates a **partial order** (intent): stores user_id and items; may call User Management **via gRPC** (GetUserAddresses) for address options; does **not** call Pricing yet (no coupons at this step). Returns **order_id** to Cart; Cart returns this to frontend. If cart_id was provided, Order calls **Cart.InvalidateCart** **via gRPC** with **cart_id**, **order_id**, and **product_ids** (the exact product_id list from the order) so Cart removes only those items; remaining cart items stay (user may have selected only a subset for this order).
+- **Order service** creates a **partial order** (intent): stores user_id and items; may call User Management **via gRPC** (GetUserAddresses) for address options; does **not** call Pricing yet (no coupons at this step). Returns **order_id** to Cart; Cart returns this to frontend. After order is placed, Order may call **Cart.InvalidateCart** **via gRPC** with **user_id** and **product_ids** (the exact product_id list from the order) so Cart removes only those items; remaining cart items stay (user may have selected only a subset for this order).
 - **Frontend** redirects the user to the order page with **intentId** (order_id). Frontend calls the Order Service **via REST** (e.g. GET /orders/{id}) to load the order. Frontend fetches the user's **addresses** (delivery and billing) from **User Management** **via REST** and shows them; the user selects an existing address (by address_id) or adds a new one. Frontend sends **user_id**, **coupon_codes**, and **address_id** (unique ID in User Management's user address list) **via REST** (e.g. PUT /orders/{id}/details); Order Service may call User Management **via gRPC** to get address by address_id, calls **Pricing.CalculateOrderPricing** **via gRPC**, and stores the full order (pricing, coupons, address). Pricing details are shown on the frontend. When the user presses **Pay**, frontend calls the Order Service **via REST**; Order Service calls **Payment.CreatePaymentIntent** **via gRPC** and returns **payment_intent_id** to frontend; frontend redirects to payment page. Orders become eligible for production after successful payment; Kitchen notifies Order when production is completed.
 
 **Message and RPC use cases**
@@ -877,7 +867,7 @@ Notification     ◄── Order, Payment, Shipping, User Management, Kitchen (o
 | Cart          | User            | ValidateUser                                                                                                                                                  |
 | Cart          | Order           | CreateOrderIntent (user_id, items, cart_id); Cart returns order intent id to frontend                                                                       |
 | Cart          | Notification    | SendNotification (optional: abandoned cart)                                                                                                                   |
-| Order         | Cart            | InvalidateCart (cart_id, order_id, product_ids after order placed)                                                                                           |
+| Order         | Cart            | InvalidateCart (user_id, product_ids after order placed)                                                                                           |
 | Order         | User            | GetUser, GetUserAddresses, ValidateUser                                                                                                                      |
 | Order         | Pricing         | CalculateOrderPricing when building full order (Order does not call Product)                                                                                 |
 | Order         | Payment         | CreatePaymentIntent, GetPaymentStatus; Payment may call Order NotifyPaymentResult after webhook                                                             |
@@ -940,7 +930,7 @@ This section describes how the services work together for the main business flow
 | ---- | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1    | **Frontend**      | User clicks "Checkout". Frontend calls **Cart Service** **via REST** (e.g. POST /carts/checkout) with `user_id` and current cart.                                                                                                                                                                                                                                                                                                                                      |
 | 2    | **Cart Service**  | Builds order intent payload: `user_id`, list of `(product_id, quantity)`, optional `cart_id`. Calls **Order Service** **via gRPC** `CreateOrderIntent` with this payload (no coupon_codes).                                                                                                                                                                                                                                                                            |
-| 3    | **Order Service** | Creates a **partial order (order intent)**: stores `user_id`, items. May call **User Management** **via gRPC** `GetUserAddresses(user_id)`. Does _not_ call Pricing yet (no coupons at this step). Returns **order_id** (intent id) to Cart. If cart_id was provided, calls **Cart.InvalidateCart** **via gRPC** with **cart_id**, **order_id**, and **product_ids** (exact product_id list from the order) so Cart removes only those items; other cart items remain. |
+| 3    | **Order Service** | Creates a **partial order (order intent)**: stores `user_id`, items. May call **User Management** **via gRPC** `GetUserAddresses(user_id)`. Does _not_ call Pricing yet (no coupons at this step). Returns **order_id** (intent id) to Cart. After order is placed, may call **Cart.InvalidateCart** **via gRPC** with **user_id** and **product_ids** (exact product_id list from the order) so Cart removes only those items; other cart items remain. |
 | 4    | **Cart Service**  | Returns **order_id** (order intent id) to frontend.                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | 5    | **Frontend**      | Redirects user to **order page** with `order_id` (intentId).                                                                                                                                                                                                                                                                                                                                                                                                           |
 | 6    | **Frontend**      | On order page, calls **Order Service** **via REST** (e.g. GET /orders/{order_id}) to load the partial order (items, user). Fetches user's **addresses** from **User Management** **via REST** and shows them (billing/delivery).                                                                                                                                                                                                                                       |
@@ -950,7 +940,7 @@ This section describes how the services work together for the main business flow
 | 10   | **Order Service** | Returns full **OrderInfo** (with pricing) to frontend.                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | 11   | **Frontend**      | Displays order summary: items, quantities, pricing, delivery address. User can change coupons/address and press **Pay** when ready.                                                                                                                                                                                                                                                                                                                                    |
 
-**Business rule:** The "order" starts as a partial order (intent) created from the cart; it becomes a full order only after the user sets coupons and delivery on the order page and Order recalculates with Pricing. When the order is placed, the cart is invalidated by passing the **exact product_id list** from the order to the Cart Service, so only the items that were in this order are removed from the cart; any other cart items (not selected for this order) remain.
+**Business rule:** The "order" starts as a partial order (intent) created from the cart; it becomes a full order only after the user sets coupons and delivery on the order page and Order recalculates with Pricing. When the order is placed, Order may call Cart.InvalidateCart with **user_id** and the **exact product_id list** from the order so only those items are removed from the cart; any other cart items (not selected for this order) remain.
 
 ---
 

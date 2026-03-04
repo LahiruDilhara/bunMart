@@ -29,6 +29,7 @@ public class ReviewGrpcController extends ReviewServiceGrpc.ReviewServiceImplBas
                 .build();
         responseObserver.onNext(GetReviewsResponse.newBuilder()
                 .addReviews(review)
+                .setNextPageToken("")
                 .build());
         responseObserver.onCompleted();
         log.debug("getReviews: productId={}, pageSize={}", request.getProductId(), request.getPageSize());

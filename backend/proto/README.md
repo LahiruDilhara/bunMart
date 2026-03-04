@@ -11,40 +11,47 @@ This directory is the **single source of truth** for all service-to-service gRPC
 
 ## Layout
 
+Protos live under `src/main/proto/` with one directory per service and version:
+
 ```
 proto/
 ├── README.md
-├── product/
-│   └── v1/
-│       └── product.proto      # ProductCatalogService
-├── kitchen/
-│   └── v1/
-│       └── kitchen.proto      # KitchenService
-├── pricing/
-│   └── v1/
-│       └── pricing.proto      # PricingService
-├── cart/
-│   └── v1/
-│       └── cart.proto         # CartService
-├── order/
-│   └── v1/
-│       └── order.proto        # OrderService
-├── payment/
-│   └── v1/
-│       └── payment.proto      # PaymentService
-├── shipping/
-│   └── v1/
-│       └── shipping.proto      # ShippingService
-├── notification/
-│   └── v1/
-│       └── notification.proto # NotificationService
-├── review/
-│   └── v1/
-│       └── review.proto       # ReviewService
-└── user/
-    └── v1/
-        └── user.proto         # UserService
+└── src/
+    └── main/
+        └── proto/
+            ├── cart/
+            │   └── v1/
+            │       └── cart.proto         # CartService: GetCart, AddCartItem, InvalidateCart
+            ├── kitchen/
+            │   └── v1/
+            │       └── kitchen.proto     # KitchenService
+            ├── order/
+            │   └── v1/
+            │       └── order.proto       # OrderService
+            ├── payment/
+            │   └── v1/
+            │       └── payment.proto     # PaymentService
+            ├── pricing/
+            │   └── v1/
+            │       └── pricing.proto     # PricingService
+            ├── product/
+            │   └── v1/
+            │       └── product.proto    # ProductCatalogService
+            ├── review/
+            │   └── v1/
+            │       └── review.proto      # ReviewService
+            ├── shipping/
+            │   └── v1/
+            │       └── shipping.proto    # ShippingService
+            ├── notification/
+            │   └── v1/
+            │       └── notification.proto # NotificationService
+            └── user/
+                └── v1/
+                    └── user.proto        # UserService
 ```
+
+Package names follow the pattern `bunmart.<service>.v1` (e.g. `bunmart.cart.v1`). The main [backend README](../README.md) documents the full gRPC contracts and message definitions for each service.
 
 ## Conventions (from main README)
 

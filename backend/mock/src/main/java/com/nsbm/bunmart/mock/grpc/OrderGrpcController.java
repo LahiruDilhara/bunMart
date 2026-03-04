@@ -42,6 +42,7 @@ public class OrderGrpcController extends OrderServiceGrpc.OrderServiceImplBase {
                 .setShippingTotal("2.99")
                 .setTotal("12.97")
                 .setCurrencyCode("USD")
+                .setShippingAddressId("addr-mock-1")
                 .setCreatedAt(now())
                 .setUpdatedAt(now())
                 .build();

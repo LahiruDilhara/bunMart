@@ -42,6 +42,7 @@ public class PricingGrpcController extends PricingServiceGrpc.PricingServiceImpl
                 .setUnitPrice(unitPrice)
                 .setSubtotal(String.format("%.2f", subtotal))
                 .setDiscountAmount("0.00")
+                .setDiscountDescription("")
                 .setTotal(String.format("%.2f", subtotal))
                 .setCurrencyCode("USD")
                 .setCouponApplied(false)
