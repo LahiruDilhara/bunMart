@@ -1,18 +1,14 @@
 package com.nsbm.bunmart.kitchen.services;
 
-import com.nsbm.bunmart.kitchen.errors.ImageNotFoundException;
-//import com.nsbm.bunmart.kitchen.errors.OrderServiceUnavailableException;
-import com.nsbm.bunmart.kitchen.errors.ProductionOrderNotFoundException;
-import com.nsbm.bunmart.kitchen.errors.ProductionOrderNotSavedException;
-import com.nsbm.bunmart.kitchen.model.PreparationImage;
-import com.nsbm.bunmart.kitchen.model.ProductionLine;
-import com.nsbm.bunmart.kitchen.model.ProductionOrder;
-import com.nsbm.bunmart.kitchen.repositories.ProductionOrderRepository;
-//import com.nsbm.bunmart.kitchen.v1.NotifyOrderPreparedRequest;
-import com.nsbm.bunmart.order.v1.OrderServiceGrpc;
-//import io.grpc.StatusRuntimeException;
+import com.nsbm.bunmart.kitchen.dto.CreateKitchenOrderRequestDTO;
+import com.nsbm.bunmart.kitchen.errors.DuplicateOrderIdException;
+import com.nsbm.bunmart.kitchen.errors.KitchenOrderLineNotFoundException;
+import com.nsbm.bunmart.kitchen.errors.KitchenOrderNotFoundException;
+import com.nsbm.bunmart.kitchen.errors.KitchenOrderNotSavedException;
+import com.nsbm.bunmart.kitchen.model.KitchenOrder;
+import com.nsbm.bunmart.kitchen.model.KitchenOrderLine;
+import com.nsbm.bunmart.kitchen.repositories.KitchenOrderRepository;
 import lombok.extern.slf4j.Slf4j;
-import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,127 +20,122 @@ import java.util.List;
 @Transactional
 public class KitchenService {
 
-    private final ProductionOrderRepository productionOrderRepository;
+    private final KitchenOrderRepository kitchenOrderRepository;
 
-    @GrpcClient("orderService")
-    private OrderServiceGrpc.OrderServiceBlockingStub orderStub;
-
-    public KitchenService(ProductionOrderRepository productionOrderRepository) {
-        this.productionOrderRepository = productionOrderRepository;
+    public KitchenService(KitchenOrderRepository kitchenOrderRepository) {
+        this.kitchenOrderRepository = kitchenOrderRepository;
     }
 
-    //  CREATE
-
-    public ProductionOrder createProductionOrder(String userOrderId, List<ProductionLine> lines) {
-        ProductionOrder order = new ProductionOrder();
-        order.setUserOrderId(userOrderId);
-        order.setPhase("PREPARING");
-        order.setProgressPercent(0);
-
-        for (ProductionLine line : lines) {
-            line.setProductionOrder(order);
+    public KitchenOrder createKitchenOrder(String userId, String orderId, List<CreateKitchenOrderRequestDTO.LineItemDTO> lines) {
+        if (!kitchenOrderRepository.findByOrderId(orderId).isEmpty()) {
+            throw new DuplicateOrderIdException("A kitchen order already exists for orderId: " + orderId);
         }
-        order.setLines(lines);
+        KitchenOrder order = new KitchenOrder();
+        order.setUserId(userId);
+        order.setOrderId(orderId);
+        order.setStatus("ACTIVE");
+
+        for (CreateKitchenOrderRequestDTO.LineItemDTO item : lines) {
+            KitchenOrderLine line = new KitchenOrderLine();
+            line.setProductId(item.getProductId());
+            line.setQuantity(item.getQuantity());
+            line.setProgress(0);
+            line.setStatus("PENDING");
+            line.setKitchenOrder(order);
+            order.getLines().add(line);
+        }
 
         try {
-            return productionOrderRepository.save(order);
+            return kitchenOrderRepository.save(order);
         } catch (DataAccessException e) {
-            log.error("Failed to save production order: {}", e.getMessage());
-            throw new ProductionOrderNotSavedException("Failed to create production order");
+            log.error("Failed to save kitchen order: {}", e.getMessage());
+            throw new KitchenOrderNotSavedException("Failed to create kitchen order");
         }
     }
 
-    //  READ
-
-    public ProductionOrder getProductionOrder(String id) {
-        return productionOrderRepository.findById(id)
-                .orElseThrow(() -> new ProductionOrderNotFoundException("Production order not found: " + id));
+    public KitchenOrder getKitchenOrder(String id) {
+        return kitchenOrderRepository.findById(id)
+                .orElseThrow(() -> new KitchenOrderNotFoundException("Kitchen order not found: " + id));
     }
 
-    public List<ProductionOrder> getAllProductionOrders() {
-        return productionOrderRepository.findAll();
+    public List<KitchenOrder> getAllKitchenOrders() {
+        return kitchenOrderRepository.findAll();
     }
 
-    // UPDATE PHASE
+    public List<KitchenOrder> getKitchenOrdersByOrderId(String orderId) {
+        return kitchenOrderRepository.findByOrderId(orderId);
+    }
 
-    public ProductionOrder updatePhase(String id, String phase, int progressPercent) {
-        ProductionOrder order = getProductionOrder(id);
-        order.setPhase(phase);
-        order.setProgressPercent(progressPercent);
-
-        try {
-            ProductionOrder saved = productionOrderRepository.save(order);
-
-            // If completed, notify Order Service via gRPC
-            if ("COMPLETED".equalsIgnoreCase(phase)) {
-                //notifyOrderPrepared(saved.getId(), saved.getUserOrderId());
+    public KitchenOrder updateKitchenOrder(String id, String userId, String orderId) {
+        KitchenOrder order = getKitchenOrder(id);
+        if (!orderId.equals(order.getOrderId())) {
+            if (!kitchenOrderRepository.findByOrderId(orderId).isEmpty()) {
+                throw new DuplicateOrderIdException("A kitchen order already exists for orderId: " + orderId);
             }
-
-            return saved;
-        } catch (DataAccessException e) {
-            log.error("Failed to update phase: {}", e.getMessage());
-            throw new ProductionOrderNotSavedException("Failed to update production order phase");
         }
-    }
-
-    //  UPDATE NOTES
-
-    public ProductionOrder updateNotes(String id, String notes) {
-        ProductionOrder order = getProductionOrder(id);
-        order.setNotes(notes);
-
+        order.setUserId(userId);
+        order.setOrderId(orderId);
         try {
-            return productionOrderRepository.save(order);
+            return kitchenOrderRepository.save(order);
         } catch (DataAccessException e) {
-            log.error("Failed to update notes: {}", e.getMessage());
-            throw new ProductionOrderNotSavedException("Failed to update notes");
+            log.error("Failed to update kitchen order: {}", e.getMessage());
+            throw new KitchenOrderNotSavedException("Failed to update kitchen order");
         }
     }
 
-    // IMAGES
-
-    public ProductionOrder addImage(String id, String imageUrl) {
-        ProductionOrder order = getProductionOrder(id);
-
-        PreparationImage image = new PreparationImage();
-        image.setImageUrl(imageUrl);
-        image.setProductionOrder(order);
-        order.getImages().add(image);
-
+    public KitchenOrder updateKitchenOrderStatus(String id, String status) {
+        KitchenOrder order = getKitchenOrder(id);
+        order.setStatus(status);
         try {
-            return productionOrderRepository.save(order);
+            return kitchenOrderRepository.save(order);
         } catch (DataAccessException e) {
-            log.error("Failed to add image: {}", e.getMessage());
-            throw new ProductionOrderNotSavedException("Failed to add image");
+            log.error("Failed to update kitchen order status: {}", e.getMessage());
+            throw new KitchenOrderNotSavedException("Failed to update kitchen order status");
         }
     }
 
-    public void deleteImage(String orderId, String imageId) {
-        ProductionOrder order = getProductionOrder(orderId);
-        boolean removed = order.getImages().removeIf(img -> img.getId().equals(imageId));
-        if (!removed) {
-            throw new ImageNotFoundException("Image not found: " + imageId);
-        }
+    public KitchenOrder stopKitchenOrder(String id) {
+        return updateKitchenOrderStatus(id, "STOPPED");
+    }
 
+    public KitchenOrder updateLineProgress(String orderId, String lineId, int progress) {
+        KitchenOrder order = getKitchenOrder(orderId);
+        KitchenOrderLine line = findLine(order, lineId);
+        line.setProgress(Math.max(0, Math.min(100, progress)));
         try {
-            productionOrderRepository.save(order);
+            return kitchenOrderRepository.save(order);
         } catch (DataAccessException e) {
-            log.error("Failed to delete image: {}", e.getMessage());
-            throw new ProductionOrderNotSavedException("Failed to delete image");
+            log.error("Failed to update line progress: {}", e.getMessage());
+            throw new KitchenOrderNotSavedException("Failed to update line progress");
         }
     }
 
-    // DELETE
-
-    public void deleteProductionOrder(String id) {
-        ProductionOrder order = getProductionOrder(id);
+    public KitchenOrder updateLineStatus(String orderId, String lineId, String status) {
+        KitchenOrder order = getKitchenOrder(orderId);
+        KitchenOrderLine line = findLine(order, lineId);
+        line.setStatus(status);
         try {
-            productionOrderRepository.delete(order);
+            return kitchenOrderRepository.save(order);
         } catch (DataAccessException e) {
-            log.error("Failed to delete production order: {}", e.getMessage());
-            throw new ProductionOrderNotSavedException("Failed to delete production order");
+            log.error("Failed to update line status: {}", e.getMessage());
+            throw new KitchenOrderNotSavedException("Failed to update line status");
         }
     }
 
-    //  gRPC CLIENT: Notify Order Service
+    public void deleteKitchenOrder(String id) {
+        KitchenOrder order = getKitchenOrder(id);
+        try {
+            kitchenOrderRepository.delete(order);
+        } catch (DataAccessException e) {
+            log.error("Failed to delete kitchen order: {}", e.getMessage());
+            throw new KitchenOrderNotSavedException("Failed to delete kitchen order");
+        }
+    }
+
+    private KitchenOrderLine findLine(KitchenOrder order, String lineId) {
+        return order.getLines().stream()
+                .filter(l -> lineId.equals(l.getId()))
+                .findFirst()
+                .orElseThrow(() -> new KitchenOrderLineNotFoundException("Line not found: " + lineId));
+    }
 }
