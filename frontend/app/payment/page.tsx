@@ -76,7 +76,7 @@ export default function PaymentPage() {
                         <PaymentForm
                             clientSecret={payment.clientSecret}
                             amount={payment.amount}
-                            currency={payment.currency_code}
+                            currency={payment.currency}
                             paymentId={payment.paymentId}
                             orderId={orderId!}
                         />
