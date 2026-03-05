@@ -77,11 +77,18 @@ public class ShipmentService {
         return shipmentDTO;
     }
 
-    public ShipmentDTO getShipmentByTrackingNumber(Integer trackingNumber) {
+//    public ShipmentDTO getShipmentByTrackingNumber(Integer trackingNumber) {
+//
+//        // Fetch from DB
+//        Shipment shipment = shipmentRepository.findByTrackingNumber(trackingNumber)
+//                .orElseThrow(() -> new RuntimeException("Shipment not found with Tracking Number: " + trackingNumber));
 
-        // Fetch from DB
+    public ShipmentDTO getShipmentByTrackingNumber(Integer trackingNumber) {
         Shipment shipment = shipmentRepository.findByTrackingNumber(trackingNumber)
-                .orElseThrow(() -> new RuntimeException("Shipment not found with Tracking Number: " + trackingNumber));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Shipment not found with Tracking Number: " + trackingNumber
+                ));
 
         // Map to DTO (only IDs for related entities)
         ShipmentDTO shipmentDTO = ShipmentDTO.builder()

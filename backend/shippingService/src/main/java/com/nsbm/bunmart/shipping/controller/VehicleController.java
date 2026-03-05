@@ -10,6 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/shipping/vehicle")
+@CrossOrigin(origins = "*")
 public class VehicleController {
 
     @Autowired
@@ -20,7 +21,7 @@ public class VehicleController {
         return ResponseEntity.ok(vehicleService.createVehicle(vehicleDTO));
     }
 
-    @GetMapping("all-vehicle")
+    @GetMapping("all-vehicles")
     public List<VehicleDTO> getAllVehicles(){
         return vehicleService.getAllVehicles();
     }

@@ -58,6 +58,6 @@ public class CartGrpcController extends CartServiceGrpc.CartServiceImplBase {
     public void invalidateCart(InvalidateCartRequest request, StreamObserver<InvalidateCartResponse> responseObserver) {
         responseObserver.onNext(InvalidateCartResponse.newBuilder().setInvalidated(true).build());
         responseObserver.onCompleted();
-        log.debug("invalidateCart: userId={}, productIds={}", request.getUserId(), request.getProductIdsList());
+        log.debug("invalidateCart: userId={}, productIds={}", request.getCartId(), request.getProductIdsList());
     }
 }
