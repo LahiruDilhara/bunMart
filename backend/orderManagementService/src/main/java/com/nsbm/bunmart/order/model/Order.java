@@ -31,6 +31,9 @@ public class Order {
 
     private String shipmentId;
 
+    @Column(name = "payment_id")
+    private String paymentId;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -122,6 +125,14 @@ public class Order {
 
     public void setShipmentId(String shipmentId) {
         this.shipmentId = shipmentId;
+    }
+
+    public String getPaymentId() {
+        return paymentId;
+    }
+
+    public void setPaymentId(String paymentId) {
+        this.paymentId = paymentId;
     }
 
     public LocalDateTime getCreatedAt() {

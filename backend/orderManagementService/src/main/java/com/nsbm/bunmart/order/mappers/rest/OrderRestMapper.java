@@ -23,6 +23,7 @@ public class OrderRestMapper {
         dto.setCurrencyCode(order.getCurrencyCode());
         dto.setShippingAddress(order.getShippingAddress());
         dto.setShipmentId(order.getShipmentId());
+        dto.setPaymentId(order.getPaymentId());
         dto.setProducts(order.getProducts() != null
                 ? order.getProducts().stream().map(this::orderProductToDTO).toList()
                 : List.of());

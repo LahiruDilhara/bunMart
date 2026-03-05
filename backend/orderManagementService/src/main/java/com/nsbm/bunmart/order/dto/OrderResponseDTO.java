@@ -14,6 +14,7 @@ public class OrderResponseDTO {
     private String currencyCode;
     private String shippingAddress;
     private String shipmentId;
+    private String paymentId;
     /** Order contains products; each product has productId and quantity. */
     private List<OrderProductDTO> products;
     private LocalDateTime createdAt;
@@ -100,6 +101,14 @@ public class OrderResponseDTO {
 
     public void setShipmentId(String shipmentId) {
         this.shipmentId = shipmentId;
+    }
+
+    public String getPaymentId() {
+        return paymentId;
+    }
+
+    public void setPaymentId(String paymentId) {
+        this.paymentId = paymentId;
     }
 
     public List<OrderProductDTO> getProducts() {

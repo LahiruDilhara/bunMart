@@ -159,6 +159,13 @@ public class OrderService {
         return saveOrThrow(order);
     }
 
+    public Order setPaymentId(String id, String paymentId) {
+        Order order = getOrder(id);
+        order.setPaymentId(paymentId);
+        order.setUpdatedAt(java.time.LocalDateTime.now());
+        return saveOrThrow(order);
+    }
+
     private static String normalizeStatus(String status) {
         if (status == null || status.isBlank()) return status;
         return status.trim().toLowerCase().replace("-", "_");

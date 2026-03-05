@@ -86,4 +86,12 @@ public class OrderController {
         Order order = orderService.setShipmentId(id, request.getShipmentId());
         return ResponseEntity.ok(orderRestMapper.orderToDTO(order));
     }
+
+    @PutMapping("/{id}/payment")
+    public ResponseEntity<OrderResponseDTO> setPaymentId(
+            @PathVariable String id,
+            @RequestBody PaymentIdRequestDTO request) {
+        Order order = orderService.setPaymentId(id, request.getPaymentId());
+        return ResponseEntity.ok(orderRestMapper.orderToDTO(order));
+    }
 }
