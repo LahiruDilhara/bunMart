@@ -51,9 +51,9 @@ public class CartController {
     }
 
     @PostMapping("/items")
-    public ResponseEntity<CartResponseDTO> addCartItem(@RequestParam String userId,@RequestBody AddCartItemRequestDTO addCartItemRequestDTO){
-            Cart cart = cartService.addCartItem(userId,addCartItemRequestDTO.getProductId(),addCartItemRequestDTO.getQuantity());
-            return ResponseEntity.status(HttpStatus.OK).body(cartMapper.cartToCartResponseDTO(cart));
+    public ResponseEntity<AddCartItemResponseDTO> addCartItem(@RequestParam String userId, @RequestBody AddCartItemRequestDTO addCartItemRequestDTO) {
+        Cart cart = cartService.addCartItem(userId, addCartItemRequestDTO.getProductId(), addCartItemRequestDTO.getQuantity());
+        return ResponseEntity.status(HttpStatus.OK).body(new AddCartItemResponseDTO(cart.getId().toString()));
     }
 
     @PostMapping("/checkout")

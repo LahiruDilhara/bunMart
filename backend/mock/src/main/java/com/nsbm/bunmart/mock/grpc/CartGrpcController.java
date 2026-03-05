@@ -35,20 +35,8 @@ public class CartGrpcController extends CartServiceGrpc.CartServiceImplBase {
 
     @Override
     public void addCartItem(AddCartItemRequest request, StreamObserver<AddCartItemResponse> responseObserver) {
-        CartItemInfo newItem = CartItemInfo.newBuilder()
-                .setCartItemId("item-new")
-                .setProductId(request.getProductId())
-                .setQuantity(request.getQuantity())
-                .build();
-        CartInfo cartInfo = CartInfo.newBuilder()
-                .setCartId("CART-MOCK-" + request.getUserId())
-                .setUserId(request.getUserId())
-                .addItems(newItem)
-                .setTotal("0.00")
-                .build();
         responseObserver.onNext(AddCartItemResponse.newBuilder()
                 .setCartId("CART-MOCK-" + request.getUserId())
-                .setCart(cartInfo)
                 .build());
         responseObserver.onCompleted();
         log.debug("addCartItem: userId={}, productId={}", request.getUserId(), request.getProductId());

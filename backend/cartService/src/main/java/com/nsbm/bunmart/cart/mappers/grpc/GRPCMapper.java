@@ -15,7 +15,6 @@ public class GRPCMapper {
     public AddCartItemResponse cartToAddCartItemResponse(Cart cart) {
         return AddCartItemResponse.newBuilder()
                 .setCartId(cart.getId().toString())
-                .setCart(cartInfoFromCart(cart))
                 .build();
     }
 

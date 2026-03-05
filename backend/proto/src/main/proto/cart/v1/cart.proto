@@ -42,7 +42,6 @@ message AddCartItemRequest {
 
 message AddCartItemResponse {
   string cart_id = 1;
-  CartInfo cart = 2; // updated cart after add
 }
 
 message InvalidateCartRequest {
