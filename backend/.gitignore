@@ -36,5 +36,13 @@ out/
 ### VS Code ###
 .vscode/
 
+<<<<<<< HEAD
+### Visual Studio ###
+.vs/
+**/.vs/
+
+
+=======
 
 /shippingService/src/main/resources/application.properties
+>>>>>>> origin/main

@@ -1,11 +1,8 @@
 package com.nsbm.bunmart.cart.grpcController;
 
-import com.nsbm.bunmart.cart.errors.CartNotExistsException;
-import com.nsbm.bunmart.cart.errors.DatabaseExceptionException;
 import com.nsbm.bunmart.cart.mappers.grpc.GRPCMapper;
 import com.nsbm.bunmart.cart.services.CartService;
 import com.nsbm.bunmart.cart.v1.*;
-import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.server.service.GrpcService;

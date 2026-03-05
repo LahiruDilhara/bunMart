@@ -27,35 +27,44 @@ The platform provides a complete e-commerce experience including product catalog
 ## 🛠 Technology Stack
 
 ### Backend
-- **Framework**: Spring Boot 3.x
+- **Framework**: Spring Boot 4.x
 - **Language**: Java 25
 - **Database**: PostgreSQL
 - **ORM**: Spring Data JPA
-- **Authentication**: JWT (JSON Web Tokens)
+- **APIs**: REST (for frontend/clients) and **gRPC** (for service-to-service)
+- **Contract**: Protocol Buffers (proto3) — shared definitions in `backend/proto`
 - **Payment Gateway**: Stripe
 - **Build Tool**: Gradle
-- **Architecture**: Microservices with RESTful APIs
+- **Architecture**: Microservices with API Gateway (BFF-style aggregation)
 
 ### Frontend
-- Frontend implementation is in progress
+- **Framework**: Next.js 16
+- **UI**: React 19, TypeScript
+- **Styling**: Tailwind CSS 4
+- **HTTP Client**: Axios
+- **Location**: `frontend/` — app, cart, components, models, service, public
 
 ## 🏗 Architecture
 
-BunMart follows a **microservices architecture** pattern where each service is independently deployable and responsible for a specific business domain. Services communicate through:
+BunMart follows a **microservices architecture** with clear API boundaries:
 
-- **Synchronous Communication**: REST APIs for immediate responses
-- **Asynchronous Communication**: Message queues for event-driven operations
-- **Event-Driven Architecture**: Services publish and subscribe to events
+- **REST APIs**: Used by the frontend and external clients only. The frontend never calls gRPC.
+- **gRPC**: Used only for **service-to-service** communication (backend to backend). Contracts are defined in Protocol Buffers.
+- **API Gateway**: Optional BFF (Backend-for-Frontend) in `backend/api-gateway` can aggregate data from services via REST for the UI.
+- **Intent-driven flows**: Checkout and order lifecycle use intents (e.g. order intent from Cart → full order → payment intent).
 
 ### Key Architectural Principles
 
-1. **Service Independence**: Each service has its own database/schema
-2. **Layered Architecture**: Controller → Service → Repository → Model
-3. **Exception Handling**: Three-layer exception masking strategy
-4. **API-First Design**: RESTful APIs with standardized error responses
-5. **Security**: JWT-based authentication with role-based access control
+1. **Service Independence**: Each service has its own database/schema.
+2. **Layered Architecture**: Controller → Service → Repository → Model (plus `grpc/` and `errors/` where applicable).
+3. **Exception Handling**: Three-layer exception masking strategy.
+4. **API-First Design**: REST for clients; gRPC for inter-service calls with stable proto contracts.
+5. **No cross-service REST**: Backend services communicate via gRPC only; no service-to-service REST.
 
-For detailed architecture documentation, see [backend/base/SERVICE_ARCHITECTURE.md](backend/base/SERVICE_ARCHITECTURE.md).
+For detailed architecture, service responsibilities, and who-calls-whom, see:
+- [Backend README](backend/README.md) — services, REST vs gRPC policy, CRUD, flows
+- [WHO_CALLS_WHOM.md](backend/WHO_CALLS_WHOM.md) — call matrix
+- [backend/base/SERVICE_ARCHITECTURE.md](backend/base/SERVICE_ARCHITECTURE.md) — base service structure
 
 ## 📁 Project Structure
 
@@ -80,84 +89,38 @@ bunMart/
 │       │   └── test/                         # Test files
 │       ├── build.gradle
 │       └── SERVICE_ARCHITECTURE.md          # Architecture docs
-└── frontend/                      # Frontend application (in progress)
+└── frontend/                 # Next.js app (React 19, TypeScript, Tailwind)
 ```
+
+Other backend modules: `api-gateway`, `cartService`, `kitchenService`, `orderManagementService`, `paymentService`, `pricingService`, `productService`, `proto`, `reviewService`, `shippingService`, `userProfileService`, `mock`. See [backend/README.md](backend/README.md) and [backend/WHO_CALLS_WHOM.md](backend/WHO_CALLS_WHOM.md).
 
 ## 🔧 Services Overview
 
-The platform consists of 10 core microservices:
+The platform consists of **10 core microservices**. Each exposes **REST** for the frontend and **gRPC** for service-to-service calls. For full details, gRPC contracts, and who-calls-whom, see [backend/README.md](backend/README.md).
 
-### 1. **Authentication & Authorization Service**
-- User registration and login
-- JWT token management
-- Password reset and email verification
-- Role-based access control (USER, SELLER, ADMIN)
+| # | Service (module) | Responsibility |
+|---|------------------|----------------|
+| 1 | **Product Catalog** (`productService`) | Products, categories, images, availability; add-to-cart via Product → Cart gRPC |
+| 2 | **Kitchen** (`kitchenService`) | Production orders, phases (preparing, baking, completed), progress; notifies Order when prepared |
+| 3 | **Pricing & Promotion** (`pricingService`) | Prices, discounts, coupons; used on order page for full price and reductions |
+| 4 | **Shopping Cart** (`cartService`) | Carts, cart items; checkout creates order intent and hands off to Order |
+| 5 | **Order** (`orderManagementService`) | Intent-driven: order intent → full order (coupons, delivery) → payment intent; orchestrates Kitchen & Shipping |
+| 6 | **Payment** (`paymentService`) | Stripe-only payment intents; webhook for success/failure; no stored payment methods |
+| 7 | **Shipping** (`shippingService`) | Shipping intents → shipments; drivers, delivery; notifies Order when shipped |
+| 8 | **Notification** | Order updates, production alerts, shipping notifications; templates, channels |
+| 9 | **Review & Rating** (`reviewService`) | Product reviews after order completion; moderation |
+| 10 | **User Management** (`userProfileService`) | Profiles, addresses (delivery/billing), preferences; other services reference by `user_id` / `address_id` |
 
-### 2. **User Management Service**
-- User profile management
-- Address management (shipping/billing)
-- User preferences and settings
-- Profile image upload
-
-### 3. **Seller Management Service**
-- Seller registration and onboarding
-- Store management
-- Seller verification workflow
-- Seller ratings and reviews
-
-### 4. **Product Catalog Service**
-- Product CRUD operations
-- Hierarchical category management
-- Product search and filtering
-- Product reviews and ratings
-- Product image management
-
-### 5. **Inventory Management Service**
-- Real-time stock tracking
-- Stock reservations for checkout
-- Stock movement history
-- Multi-warehouse support
-- Low stock alerts
-
-### 6. **Shopping Cart Service**
-- Cart management (add/remove items)
-- Cart validation before checkout
-- Save for later functionality
-- Guest cart support
-
-### 7. **Order Management Service**
-- Order creation and lifecycle management
-- Order status tracking
-- Order history and notes
-- Order cancellation and refunds
-
-### 8. **Payment Service**
-- Stripe payment integration
-- Payment processing and confirmation
-- Refund management
-- Saved payment methods
-- Webhook handling
-
-### 9. **Shipping & Tracking Service**
-- Shipping cost calculation
-- Multi-carrier integration
-- Real-time shipment tracking
-- Shipping label generation
-- Delivery estimates
-
-### 10. **Notification & Communication Service**
-- Multi-channel notifications (Email, SMS, Push)
-- User-seller messaging
-- Notification preferences
-- Email template management
+Shared: **`proto/`** — Protocol Buffer definitions; **`api-gateway`** — optional BFF.
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
 - Java 25 or higher
-- PostgreSQL 12+ 
+- PostgreSQL 12+
 - Gradle 7.0+
+- Node.js 20+ and npm (for frontend)
 - Stripe account (for payment processing)
 
 ### Installation
@@ -193,6 +156,16 @@ The platform consists of 10 core microservices:
 
 The application will start on `http://localhost:8080` (default port).
 
+**Frontend (Next.js)**
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend runs on `http://localhost:3000` by default. Copy `.env.example` to `.env` and set your API base URL if needed.
+
 ### Environment Variables
 
 Create a `.env` file or set the following environment variables:
@@ -225,13 +198,14 @@ Each service follows a standardized layered architecture:
 
 ```
 controller/     → REST API endpoints (HTTP layer)
-services/        → Business logic implementation
-repositories/    → Database access layer (JPA repositories)
-model/           → JPA entities (database models)
-interface/       → Service interfaces and DTOs
-mappers/         → Entity-DTO conversion logic
-exceptions/      → Custom exception classes
-configuration/   → Spring configuration classes
+services/       → Business logic implementation
+repositories/   → Database access layer (JPA repositories)
+model/          → JPA entities (database models)
+interface/      → Service interfaces and DTOs
+mappers/        → Entity-DTO conversion logic
+grpc/           → gRPC server and client (service-to-service)
+errors/         → Custom exception classes (exception handling)
+configuration/  → Spring configuration classes
 ```
 
 ### Exception Handling
@@ -249,7 +223,7 @@ The project follows a three-layer exception masking strategy:
 - ✅ Keep controllers thin - Business logic belongs in services
 - ✅ Use `@Transactional` appropriately for service methods
 - ✅ Log meaningful information with request IDs for tracing
-- ✅ Follow REST conventions for API design
+- ✅ Follow REST conventions for API design (frontend); keep gRPC contracts stable (service-to-service)
 - ✅ Document code with JavaDoc for public methods
 
 ### Database Guidelines
@@ -285,9 +259,9 @@ API documentation is available for each service. Once services are running, you 
 ### Development Workflow
 
 1. **Review Architecture Documentation**
-   - Read [SERVICE_ARCHITECTURE.md](backend/base/SERVICE_ARCHITECTURE.md) thoroughly
-   - Understand your service responsibilities
-   - Identify dependencies on other services
+   - Read [backend/README.md](backend/README.md) and [backend/base/SERVICE_ARCHITECTURE.md](backend/base/SERVICE_ARCHITECTURE.md)
+   - Understand your service responsibilities and gRPC contracts
+   - Check [backend/WHO_CALLS_WHOM.md](backend/WHO_CALLS_WHOM.md) for dependencies
 
 2. **Development Phases**
    - Phase 1: Setup & Planning
@@ -321,7 +295,7 @@ API documentation is available for each service. Once services are running, you 
 ## 📞 Support
 
 For questions or issues:
-- Review the [Architecture Documentation](backend/base/SERVICE_ARCHITECTURE.md)
+- Review the [Backend README](backend/README.md) and [Architecture Documentation](backend/base/SERVICE_ARCHITECTURE.md)
 - Contact the development team
 - Create an issue in the repository
 
