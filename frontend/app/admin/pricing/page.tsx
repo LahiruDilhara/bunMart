@@ -209,7 +209,7 @@ export default function PricingAdminPage() {
 
       {/* Footer */}
       <footer className="mt-auto border-t border-primary/10 py-6 text-center">
-        <p className="text-[#8a7960] text-sm">© 2026BunMart Artisanal Bakeries. All rights reserved.</p>
+        <p className="text-[#8a7960] text-sm">© 2026 BunMart Artisanal Bakeries. All rights reserved.</p>
       </footer>
     </div>
   );
