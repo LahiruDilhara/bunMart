@@ -42,6 +42,7 @@ export default function PaymentForm({
             setLoading(false);
             window.location.href = `/payment/failed?orderId=${orderId}`;
         } else if (paymentIntent?.status === 'succeeded') {
+            setLoading(false);
             window.location.href = `/payment/success?paymentId=${paymentId}`;
         }
     };
