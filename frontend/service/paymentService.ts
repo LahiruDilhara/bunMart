@@ -1,5 +1,5 @@
 const PAYMENT_API = process.env.NEXT_PUBLIC_PAYMENT_API_URL
-    || 'http://localhost:8085/api/payments';
+    || 'http://localhost:8084/api/payments';
 
 // get payment details for a specific order
 // backend gives us the clientSecret we need for stripe
