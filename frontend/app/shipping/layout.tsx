@@ -3,6 +3,7 @@ import "./globals.css";
 import { Sidebar } from "@/shipping/components/layout/Sidebar";
 import { Topbar } from "@/shipping/components/layout/Topbar";
 
+
 export const metadata: Metadata = {
   title: "BunMart Shipping",
   description: "Shipping management dashboard for BunMart",
