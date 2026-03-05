@@ -21,6 +21,12 @@ public class Coupon {
     @Column(nullable = false, unique = true, length = 100)
     private String code;
 
+    @Column(name = "product_id", length = 36)
+    private String productId;
+
+    @Column(name = "min_quantity")
+    private Integer minQuantity;
+
     @Column(nullable = false, length = 50)
     private String type;
 

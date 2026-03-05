@@ -2,27 +2,34 @@ package com.nsbm.bunmart.pricing.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "price_rules")
+@Table(name = "products")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PriceRule {
+public class Product {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "id", length = 36, nullable = false)
+    private String id;
 
-    @Column(name = "product_id", nullable = false, length = 36)
-    private String productId;
+    @Column(nullable = false, length = 255)
+    private String name;
 
-    @Column(name = "unit_price", nullable = false, precision = 10, scale = 2)
-    private BigDecimal unitPrice;
+    @Column(name = "raw_price", nullable = false, precision = 19, scale = 4)
+    private BigDecimal rawPrice;
+
+    @Column(name = "tax", nullable = false, precision = 19, scale = 4)
+    private BigDecimal tax;
+
+    @Column(name = "shipping_cost", nullable = false, precision = 19, scale = 4)
+    private BigDecimal shippingCost;
 
     @Column(name = "currency_code", length = 10)
     private String currencyCode;
