@@ -1,7 +1,7 @@
 package com.nsbm.bunmart.pricing.controller;
 
-import com.nsbm.bunmart.pricing.interface_.ICampaignService;
 import com.nsbm.bunmart.pricing.model.Campaign;
+import com.nsbm.bunmart.pricing.interfaces.ICampaignService;  // Fixed import
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

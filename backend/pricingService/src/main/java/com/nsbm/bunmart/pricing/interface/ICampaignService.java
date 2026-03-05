@@ -1,4 +1,4 @@
-package com.nsbm.bunmart.pricing.interface_;
+package com.nsbm.bunmart.pricing.interfaces;
 
 import com.nsbm.bunmart.pricing.model.Campaign;
 import java.util.List;

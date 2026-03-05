@@ -1,7 +1,7 @@
 package com.nsbm.bunmart.pricing.controller;
 
-import com.nsbm.bunmart.pricing.interface_.ICouponService;
 import com.nsbm.bunmart.pricing.model.Coupon;
+import com.nsbm.bunmart.pricing.interfaces.ICouponService;  // Changed from interface_ to interfaces
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +27,13 @@ public class CouponController {
     @GetMapping("/{id}")
     public ResponseEntity<Coupon> getById(@PathVariable Long id) {
         return ResponseEntity.ok(service.getById(id));
+    }
+
+    @GetMapping("/code/{code}")
+    public ResponseEntity<Coupon> getByCode(@PathVariable String code) {
+        return service.findByCode(code)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")

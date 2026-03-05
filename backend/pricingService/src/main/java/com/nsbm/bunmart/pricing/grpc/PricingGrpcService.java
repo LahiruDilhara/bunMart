@@ -1,11 +1,29 @@
 package com.nsbm.bunmart.pricing.grpc;
 
-import com.nsbm.bunmart.pricing.model.*;
-import com.nsbm.bunmart.pricing.repositories.*;
-import com.nsbm.bunmart.pricing.v1.*;
+import com.nsbm.bunmart.pricing.model.Campaign;
+import com.nsbm.bunmart.pricing.model.Coupon;
+import com.nsbm.bunmart.pricing.model.DiscountRule;
+import com.nsbm.bunmart.pricing.model.PriceRule;
+import com.nsbm.bunmart.pricing.model.User;
+import com.nsbm.bunmart.pricing.repositories.CampaignRepository;
+import com.nsbm.bunmart.pricing.repositories.CouponRepository;
+import com.nsbm.bunmart.pricing.repositories.DiscountRuleRepository;
+import com.nsbm.bunmart.pricing.repositories.PriceRuleRepository;
+import com.nsbm.bunmart.pricing.repositories.UserRepository;
+
+import com.nsbm.bunmart.pricing.v1.PricingServiceGrpc;
+import com.nsbm.bunmart.pricing.v1.GetPricesRequest;
+import com.nsbm.bunmart.pricing.v1.GetPricesResponse;
+import com.nsbm.bunmart.pricing.v1.PriceInfo;
+import com.nsbm.bunmart.pricing.v1.GetDiscountsRequest;
+import com.nsbm.bunmart.pricing.v1.GetDiscountsResponse;
+import com.nsbm.bunmart.pricing.v1.DiscountInfo;
+import com.nsbm.bunmart.pricing.v1.CalculatePriceRequest;
+import com.nsbm.bunmart.pricing.v1.CalculatePriceResponse;
+import com.nsbm.bunmart.pricing.v1.CalculateOrderPricingRequest;
+import com.nsbm.bunmart.pricing.v1.CalculateOrderPricingResponse;
+
 import io.grpc.stub.StreamObserver;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.server.service.GrpcService;
 
 import java.math.BigDecimal;
@@ -18,10 +36,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Slf4j
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+
 @GrpcService
-@RequiredArgsConstructor
 public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBase {
+
+    private static final Logger log = LoggerFactory.getLogger(PricingGrpcService.class);
 
     private final PriceRuleRepository priceRuleRepo;
     private final DiscountRuleRepository discountRuleRepo;
@@ -29,20 +51,42 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
     private final CampaignRepository campaignRepo;
     private final UserRepository userRepo;
 
+    @Autowired
+    public PricingGrpcService(
+            PriceRuleRepository priceRuleRepo,
+            DiscountRuleRepository discountRuleRepo,
+            CouponRepository couponRepo,
+            CampaignRepository campaignRepo,
+            UserRepository userRepo) {
+        this.priceRuleRepo = priceRuleRepo;
+        this.discountRuleRepo = discountRuleRepo;
+        this.couponRepo = couponRepo;
+        this.campaignRepo = campaignRepo;
+        this.userRepo = userRepo;
+    }
+
     @Override
     public void getPrices(GetPricesRequest request, StreamObserver<GetPricesResponse> responseObserver) {
         try {
             log.info("GetPrices request for products: {}", request.getProductIdsList());
 
-            // Use the safe method that gets latest prices
             List<PriceRule> rules = priceRuleRepo.findLatestByProductIdInAndIsActiveTrue(request.getProductIdsList());
 
             List<PriceInfo> priceInfos = rules.stream()
-                    .map(rule -> PriceInfo.newBuilder()
-                            .setProductId(rule.getProductId())
-                            .setUnitPrice(rule.getUnitPrice().toPlainString())
-                            .setCurrencyCode(rule.getCurrencyCode() != null ? rule.getCurrencyCode() : "USD")
-                            .build())
+                    .map(rule -> {
+                        PriceInfo.Builder builder = PriceInfo.newBuilder()
+                                .setProductId(rule.getProductId());
+
+                        if (rule.getUnitPrice() != null) {
+                            builder.setUnitPrice(rule.getUnitPrice().toPlainString());
+                        } else {
+                            builder.setUnitPrice("0");
+                        }
+
+                        builder.setCurrencyCode(rule.getCurrencyCode() != null ? rule.getCurrencyCode() : "USD");
+
+                        return builder.build();
+                    })
                     .collect(Collectors.toList());
 
             GetPricesResponse response = GetPricesResponse.newBuilder()
@@ -90,15 +134,24 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
 
             for (DiscountRule rule : productDiscounts) {
                 if (rule != null && rule.getId() != null && !seenDiscountIds.contains("RULE_" + rule.getId())) {
-                    // Check if this discount should be filtered for user segment
                     if (shouldIncludeDiscountForUser(rule, userSegment)) {
-                        discountInfos.add(DiscountInfo.newBuilder()
+                        DiscountInfo.Builder builder = DiscountInfo.newBuilder()
                                 .setDiscountId("RULE_" + rule.getId())
-                                .setProductId(rule.getProductId() != null ? rule.getProductId() : "")
-                                .setType(rule.getType() != null ? rule.getType() : "")
-                                .setValue(rule.getValue() != null ? rule.getValue().toPlainString() : "0")
-                                .setDescription(buildDiscountDescription(rule, null))
-                                .build());
+                                .setProductId(rule.getProductId() != null ? rule.getProductId() : "");
+
+                        if (rule.getType() != null) {
+                            builder.setType(rule.getType());
+                        }
+
+                        if (rule.getValue() != null) {
+                            builder.setValue(rule.getValue().toPlainString());
+                        } else {
+                            builder.setValue("0");
+                        }
+
+                        builder.setDescription(buildDiscountDescription(rule, null));
+
+                        discountInfos.add(builder.build());
                         seenDiscountIds.add("RULE_" + rule.getId());
                     }
                 }
@@ -113,15 +166,24 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
                             if (rule != null && rule.getIsActive() != null && rule.getIsActive()
                                     && rule.getId() != null && !seenDiscountIds.contains("CAMPAIGN_" + campaign.getId() + "_" + rule.getId())) {
 
-                                // Check if this discount should be filtered for user segment
                                 if (shouldIncludeDiscountForUser(rule, userSegment)) {
-                                    discountInfos.add(DiscountInfo.newBuilder()
+                                    DiscountInfo.Builder builder = DiscountInfo.newBuilder()
                                             .setDiscountId("CAMPAIGN_" + campaign.getId() + "_" + rule.getId())
-                                            .setProductId(rule.getProductId() != null ? rule.getProductId() : productId)
-                                            .setType(rule.getType() != null ? rule.getType() : "")
-                                            .setValue(rule.getValue() != null ? rule.getValue().toPlainString() : "0")
-                                            .setDescription(buildDiscountDescription(rule, campaign))
-                                            .build());
+                                            .setProductId(rule.getProductId() != null ? rule.getProductId() : productId);
+
+                                    if (rule.getType() != null) {
+                                        builder.setType(rule.getType());
+                                    }
+
+                                    if (rule.getValue() != null) {
+                                        builder.setValue(rule.getValue().toPlainString());
+                                    } else {
+                                        builder.setValue("0");
+                                    }
+
+                                    builder.setDescription(buildDiscountDescription(rule, campaign));
+
+                                    discountInfos.add(builder.build());
                                     seenDiscountIds.add("CAMPAIGN_" + campaign.getId() + "_" + rule.getId());
                                 }
                             }
@@ -135,10 +197,10 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
                 String loyaltyDiscountId = "LOYALTY_" + loyaltyTier;
                 if (!seenDiscountIds.contains(loyaltyDiscountId)) {
                     BigDecimal discountPercent = getLoyaltyDiscountPercent(loyaltyTier);
-                    if (discountPercent.compareTo(BigDecimal.ZERO) > 0) {
+                    if (discountPercent != null && discountPercent.compareTo(BigDecimal.ZERO) > 0) {
                         discountInfos.add(DiscountInfo.newBuilder()
                                 .setDiscountId(loyaltyDiscountId)
-                                .setProductId("")  // Applies to all products
+                                .setProductId("")
                                 .setType("PERCENTAGE")
                                 .setValue(discountPercent.toPlainString())
                                 .setDescription(loyaltyTier + " loyalty member - " + discountPercent + "% off")
@@ -154,7 +216,7 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
                 if (!seenDiscountIds.contains(premiumDiscountId)) {
                     discountInfos.add(DiscountInfo.newBuilder()
                             .setDiscountId(premiumDiscountId)
-                            .setProductId("")  // Applies to all products
+                            .setProductId("")
                             .setType("PERCENTAGE")
                             .setValue("5")
                             .setDescription("Premium member extra 5% off")
@@ -170,16 +232,24 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
                     Coupon coupon = couponOpt.get();
                     String couponDiscountId = "COUPON_" + coupon.getId();
 
-                    // Check if coupon meets minimum order (if we had order amount, but here we don't)
-                    // Just add it as available discount
                     if (!seenDiscountIds.contains(couponDiscountId)) {
-                        discountInfos.add(DiscountInfo.newBuilder()
+                        DiscountInfo.Builder builder = DiscountInfo.newBuilder()
                                 .setDiscountId(couponDiscountId)
-                                .setProductId("")  // Coupon applies to entire order
-                                .setType(coupon.getType() != null ? coupon.getType() : "")
-                                .setValue(coupon.getValue() != null ? coupon.getValue().toPlainString() : "0")
-                                .setDescription(buildCouponDescription(coupon))
-                                .build());
+                                .setProductId("");
+
+                        if (coupon.getType() != null) {
+                            builder.setType(coupon.getType());
+                        }
+
+                        if (coupon.getValue() != null) {
+                            builder.setValue(coupon.getValue().toPlainString());
+                        } else {
+                            builder.setValue("0");
+                        }
+
+                        builder.setDescription(buildCouponDescription(coupon));
+
+                        discountInfos.add(builder.build());
                         seenDiscountIds.add(couponDiscountId);
                     }
                 } else {
@@ -211,7 +281,6 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
                     request.getProductId(), request.getQuantity(),
                     request.getCouponCode(), request.getUserId());
 
-            // Validate quantity
             if (request.getQuantity() <= 0) {
                 responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT
                         .withDescription("Quantity must be positive")
@@ -219,7 +288,6 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
                 return;
             }
 
-            // Use safe method that handles duplicates
             Optional<PriceRule> priceRuleOpt = priceRuleRepo.findActivePriceRule(request.getProductId());
 
             if (priceRuleOpt.isEmpty()) {
@@ -232,14 +300,16 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
             }
 
             PriceRule priceRule = priceRuleOpt.get();
-            log.info("Found price rule ID: {} with price: {}", priceRule.getId(), priceRule.getUnitPrice());
 
-            // Calculate subtotal
-            BigDecimal unitPrice = priceRule.getUnitPrice();
+            if (priceRule.getId() != null) {
+                log.info("Found price rule ID: {} with price: {}", priceRule.getId(),
+                        priceRule.getUnitPrice() != null ? priceRule.getUnitPrice() : BigDecimal.ZERO);
+            }
+
+            BigDecimal unitPrice = priceRule.getUnitPrice() != null ? priceRule.getUnitPrice() : BigDecimal.ZERO;
             int quantity = request.getQuantity();
             BigDecimal subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
 
-            // Calculate discounts
             DiscountCalculationResult discountResult = calculateDiscounts(
                     request.getProductId(),
                     subtotal,
@@ -247,21 +317,23 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
                     request.getUserId() != null ? request.getUserId() : ""
             );
 
-            BigDecimal total = subtotal.subtract(discountResult.getTotalDiscount()).max(BigDecimal.ZERO);
+            BigDecimal total = subtotal.subtract(discountResult.getTotalDiscount() != null ?
+                    discountResult.getTotalDiscount() : BigDecimal.ZERO).max(BigDecimal.ZERO);
 
-            CalculatePriceResponse response = CalculatePriceResponse.newBuilder()
+            CalculatePriceResponse.Builder responseBuilder = CalculatePriceResponse.newBuilder()
                     .setProductId(request.getProductId())
                     .setQuantity(quantity)
                     .setUnitPrice(unitPrice.toPlainString())
                     .setSubtotal(subtotal.toPlainString())
-                    .setDiscountAmount(discountResult.getTotalDiscount().toPlainString())
-                    .setDiscountDescription(discountResult.getDescription())
+                    .setDiscountAmount(discountResult.getTotalDiscount() != null ?
+                            discountResult.getTotalDiscount().toPlainString() : "0")
+                    .setDiscountDescription(discountResult.getDescription() != null ?
+                            discountResult.getDescription() : "")
                     .setTotal(total.toPlainString())
                     .setCurrencyCode(priceRule.getCurrencyCode() != null ? priceRule.getCurrencyCode() : "USD")
-                    .setCouponApplied(discountResult.isCouponApplied())
-                    .build();
+                    .setCouponApplied(discountResult.isCouponApplied());
 
-            responseObserver.onNext(response);
+            responseObserver.onNext(responseBuilder.build());
             responseObserver.onCompleted();
 
             log.info("CalculatePrice completed successfully. Total: {}", total);
@@ -285,7 +357,6 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
             BigDecimal subtotal = BigDecimal.ZERO;
             String currency = "USD";
 
-            // Calculate line items
             for (CalculateOrderPricingRequest.LineItem item : request.getItemsList()) {
                 if (item.getQuantity() <= 0) {
                     responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT
@@ -311,7 +382,6 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
                         .build());
             }
 
-            // Apply all coupons
             BigDecimal discountTotal = BigDecimal.ZERO;
             LocalDateTime now = LocalDateTime.now();
             List<String> appliedCoupons = new ArrayList<>();
@@ -322,7 +392,6 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
                     if (couponOpt.isPresent()) {
                         Coupon coupon = couponOpt.get();
 
-                        // Check minimum order amount
                         if (coupon.getMinOrderAmount() == null ||
                                 subtotal.compareTo(coupon.getMinOrderAmount()) >= 0) {
 
@@ -330,7 +399,6 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
                             discountTotal = discountTotal.add(discount);
                             appliedCoupons.add(couponCode);
 
-                            // Increment usage count
                             if (coupon.getId() != null) {
                                 couponRepo.incrementUsageCount(coupon.getId());
                                 log.info("Incremented usage count for coupon: {}", couponCode);
@@ -345,25 +413,24 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
                 }
             }
 
-            // Apply user-specific discounts
             if (request.getUserId() != null && !request.getUserId().isEmpty()) {
                 Optional<User> userOpt = userRepo.findByUserId(request.getUserId());
                 if (userOpt.isPresent()) {
                     User user = userOpt.get();
                     BigDecimal userDiscount = calculateUserDiscount(user, subtotal);
-                    if (userDiscount.compareTo(BigDecimal.ZERO) > 0) {
+                    if (userDiscount != null && userDiscount.compareTo(BigDecimal.ZERO) > 0) {
                         discountTotal = discountTotal.add(userDiscount);
                         log.info("Applied user discount: {} for user: {}", userDiscount, request.getUserId());
                     }
                 }
             }
 
-            BigDecimal total = subtotal.subtract(discountTotal).max(BigDecimal.ZERO);
+            BigDecimal total = subtotal.subtract(discountTotal != null ? discountTotal : BigDecimal.ZERO).max(BigDecimal.ZERO);
 
             CalculateOrderPricingResponse response = CalculateOrderPricingResponse.newBuilder()
                     .addAllLines(lineResults)
                     .setSubtotal(subtotal.toPlainString())
-                    .setDiscountTotal(discountTotal.toPlainString())
+                    .setDiscountTotal(discountTotal != null ? discountTotal.toPlainString() : "0")
                     .setTotal(total.toPlainString())
                     .setCurrencyCode(currency)
                     .build();
@@ -382,7 +449,6 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
         }
     }
 
-    // Helper method to calculate all discounts
     private DiscountCalculationResult calculateDiscounts(String productId, BigDecimal subtotal,
                                                          String couponCode, String userId) {
         BigDecimal totalDiscount = BigDecimal.ZERO;
@@ -393,14 +459,13 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
         try {
             // 1. Apply product-specific discount rules
             if (productId != null && !productId.isEmpty()) {
-                List<DiscountRule> productDiscounts = discountRuleRepo
-                        .findByProductIdAndIsActiveTrue(productId);
+                List<DiscountRule> productDiscounts = discountRuleRepo.findByProductIdAndIsActiveTrue(productId);
 
                 if (productDiscounts != null) {
                     for (DiscountRule rule : productDiscounts) {
                         if (rule != null && rule.getType() != null && rule.getValue() != null) {
                             BigDecimal discount = computeDiscount(subtotal, rule.getType(), rule.getValue());
-                            if (discount.compareTo(BigDecimal.ZERO) > 0) {
+                            if (discount != null && discount.compareTo(BigDecimal.ZERO) > 0) {
                                 totalDiscount = totalDiscount.add(discount);
                                 if (description.length() > 0) description.append(", ");
                                 description.append(rule.getDescription() != null ? rule.getDescription() : "Product Discount");
@@ -421,7 +486,7 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
                                 if (rule != null && rule.getIsActive() != null && rule.getIsActive() &&
                                         rule.getType() != null && rule.getValue() != null) {
                                     BigDecimal discount = computeDiscount(subtotal, rule.getType(), rule.getValue());
-                                    if (discount.compareTo(BigDecimal.ZERO) > 0) {
+                                    if (discount != null && discount.compareTo(BigDecimal.ZERO) > 0) {
                                         totalDiscount = totalDiscount.add(discount);
                                         if (description.length() > 0) description.append(", ");
                                         description.append(campaign.getName() != null ? campaign.getName() : "Campaign");
@@ -440,13 +505,12 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
                 if (couponOpt.isPresent()) {
                     Coupon coupon = couponOpt.get();
 
-                    // Check minimum order amount
                     if (coupon.getMinOrderAmount() == null ||
                             subtotal.compareTo(coupon.getMinOrderAmount()) >= 0) {
 
                         if (coupon.getType() != null && coupon.getValue() != null) {
                             BigDecimal discount = computeDiscount(subtotal, coupon.getType(), coupon.getValue());
-                            if (discount.compareTo(BigDecimal.ZERO) > 0) {
+                            if (discount != null && discount.compareTo(BigDecimal.ZERO) > 0) {
                                 totalDiscount = totalDiscount.add(discount);
                                 couponApplied = true;
 
@@ -454,7 +518,6 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
                                 description.append(coupon.getDescription() != null ?
                                         coupon.getDescription() : coupon.getCode());
 
-                                // Increment usage count
                                 if (coupon.getId() != null) {
                                     couponRepo.incrementUsageCount(coupon.getId());
                                     log.info("Incremented usage count for coupon: {}", couponCode);
@@ -498,17 +561,14 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
 
         String desc = rule.getDescription().toLowerCase();
 
-        // If user is premium, include all discounts
         if ("PREMIUM".equalsIgnoreCase(userSegment)) {
             return true;
         }
 
-        // For regular users, filter out VIP/premium only discounts
         if ("REGULAR".equalsIgnoreCase(userSegment)) {
             return !desc.contains("vip") && !desc.contains("premium") && !desc.contains("exclusive");
         }
 
-        // Default: include all
         return true;
     }
 
@@ -522,11 +582,11 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
         if (rule.getDescription() != null) {
             desc.append(rule.getDescription());
         } else {
-            desc.append(rule.getType()).append(" discount of ");
+            desc.append(rule.getType() != null ? rule.getType() : "Discount").append(" of ");
             if ("PERCENTAGE".equalsIgnoreCase(rule.getType())) {
-                desc.append(rule.getValue()).append("%");
+                desc.append(rule.getValue() != null ? rule.getValue() : BigDecimal.ZERO).append("%");
             } else {
-                desc.append("$").append(rule.getValue());
+                desc.append("$").append(rule.getValue() != null ? rule.getValue() : BigDecimal.ZERO);
             }
         }
 
@@ -539,11 +599,11 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
         if (coupon.getDescription() != null) {
             desc.append(coupon.getDescription());
         } else {
-            desc.append("Coupon ").append(coupon.getCode()).append(": ");
+            desc.append("Coupon ").append(coupon.getCode() != null ? coupon.getCode() : "").append(": ");
             if ("PERCENTAGE".equalsIgnoreCase(coupon.getType())) {
-                desc.append(coupon.getValue()).append("% off");
+                desc.append(coupon.getValue() != null ? coupon.getValue() : BigDecimal.ZERO).append("% off");
             } else {
-                desc.append("$").append(coupon.getValue()).append(" off");
+                desc.append("$").append(coupon.getValue() != null ? coupon.getValue() : BigDecimal.ZERO).append(" off");
             }
         }
 
@@ -575,33 +635,6 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
         }
     }
 
-    private List<DiscountRule> filterDiscountsByUser(List<DiscountRule> rules, User user) {
-        if (rules == null || user == null) {
-            return rules;
-        }
-
-        try {
-            if ("PREMIUM".equalsIgnoreCase(user.getUserSegment())) {
-                return rules; // All discounts for premium users
-            } else if ("REGULAR".equalsIgnoreCase(user.getUserSegment())) {
-                // Filter out some discounts for regular users
-                return rules.stream()
-                        .filter(rule -> rule.getDescription() == null ||
-                                !isVipOnlyDiscount(rule.getDescription()))
-                        .collect(Collectors.toList());
-            }
-        } catch (Exception e) {
-            log.error("Error filtering discounts by user", e);
-        }
-        return rules;
-    }
-
-    private boolean isVipOnlyDiscount(String description) {
-        if (description == null) return false;
-        String lower = description.toLowerCase();
-        return lower.contains("vip") || lower.contains("premium") || lower.contains("exclusive");
-    }
-
     private BigDecimal calculateUserDiscount(User user, BigDecimal amount) {
         if (user == null || amount == null) {
             return BigDecimal.ZERO;
@@ -609,7 +642,7 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
 
         try {
             BigDecimal percent = getLoyaltyDiscountPercent(user.getLoyaltyTier());
-            if (percent.compareTo(BigDecimal.ZERO) > 0) {
+            if (percent != null && percent.compareTo(BigDecimal.ZERO) > 0) {
                 return amount.multiply(percent).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
             }
         } catch (Exception e) {
@@ -635,11 +668,20 @@ public class PricingGrpcService extends PricingServiceGrpc.PricingServiceImplBas
         return BigDecimal.ZERO;
     }
 
-    // Inner class for discount calculation result
-    @lombok.Value
+    // Manual implementation of DiscountCalculationResult
     private static class DiscountCalculationResult {
-        BigDecimal totalDiscount;
-        String description;
-        boolean couponApplied;
+        private final BigDecimal totalDiscount;
+        private final String description;
+        private final boolean couponApplied;
+
+        public DiscountCalculationResult(BigDecimal totalDiscount, String description, boolean couponApplied) {
+            this.totalDiscount = totalDiscount;
+            this.description = description;
+            this.couponApplied = couponApplied;
+        }
+
+        public BigDecimal getTotalDiscount() { return totalDiscount; }
+        public String getDescription() { return description; }
+        public boolean isCouponApplied() { return couponApplied; }
     }
 }

@@ -1,10 +1,11 @@
 package com.nsbm.bunmart.pricing.services;
 
-import com.nsbm.bunmart.pricing.interface_.ICouponService;
 import com.nsbm.bunmart.pricing.model.Coupon;
+import com.nsbm.bunmart.pricing.interfaces.ICouponService;  // Fixed import
 import com.nsbm.bunmart.pricing.repositories.CouponRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,38 +13,45 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CouponService implements ICouponService {
 
-    private final CouponRepository repo;
+    private final CouponRepository repository;
 
     @Override
-    public Coupon create(Coupon c) { return repo.save(c); }
+    public Coupon create(Coupon coupon) {
+        return repository.save(coupon);
+    }
 
     @Override
     public Coupon getById(Long id) {
-        return repo.findById(id).orElseThrow(() -> new RuntimeException("Coupon not found: " + id));
+        return repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Coupon not found with id: " + id));
     }
 
     @Override
-    public List<Coupon> getAll() { return repo.findAll(); }
+    public List<Coupon> getAll() {
+        return repository.findAll();
+    }
 
     @Override
-    public Coupon update(Long id, Coupon c) {
+    public Coupon update(Long id, Coupon coupon) {
         Coupon existing = getById(id);
-        existing.setCode(c.getCode());
-        existing.setType(c.getType());
-        existing.setValue(c.getValue());
-        existing.setDescription(c.getDescription());
-        existing.setMinOrderAmount(c.getMinOrderAmount());
-        existing.setUsageLimit(c.getUsageLimit());
-        existing.setIsActive(c.getIsActive());
-        existing.setExpiresAt(c.getExpiresAt());
-        return repo.save(existing);
+        existing.setCode(coupon.getCode());
+        existing.setType(coupon.getType());
+        existing.setValue(coupon.getValue());
+        existing.setDescription(coupon.getDescription());
+        existing.setMinOrderAmount(coupon.getMinOrderAmount());
+        existing.setExpiresAt(coupon.getExpiresAt());
+        existing.setUsageLimit(coupon.getUsageLimit());
+        existing.setIsActive(coupon.getIsActive());
+        return repository.save(existing);
     }
 
     @Override
-    public void delete(Long id) { repo.deleteById(id); }
+    public void delete(Long id) {
+        repository.deleteById(id);
+    }
 
     @Override
     public Optional<Coupon> findByCode(String code) {
-        return repo.findByCodeAndIsActiveTrue(code);
+        return repository.findByCodeAndIsActiveTrue(code);
     }
 }

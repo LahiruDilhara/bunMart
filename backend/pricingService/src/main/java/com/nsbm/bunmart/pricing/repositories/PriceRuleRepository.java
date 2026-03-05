@@ -4,15 +4,15 @@ import com.nsbm.bunmart.pricing.model.PriceRule;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+@Repository
 public interface PriceRuleRepository extends JpaRepository<PriceRule, Long> {
 
-    // Original method - returns List to handle multiple results
     List<PriceRule> findByProductIdInAndIsActiveTrue(List<String> productIds);
 
-    // Modified to return List instead of Optional
     List<PriceRule> findByProductIdAndIsActiveTrue(String productId);
 
     // Safe method that returns the most recent price rule
@@ -26,8 +26,7 @@ public interface PriceRuleRepository extends JpaRepository<PriceRule, Long> {
         return Optional.of(rules.get(0));
     }
 
-    // Get all active prices for products with latest version
-    @Query("SELECT p FROM PriceRule p WHERE p.productId IN :productIds AND p.isActive = true " +
-            "AND p.updatedAt = (SELECT MAX(p2.updatedAt) FROM PriceRule p2 WHERE p2.productId = p.productId AND p2.isActive = true)")
+    // Fixed query - removed the problematic subquery
+    @Query("SELECT p FROM PriceRule p WHERE p.productId IN :productIds AND p.isActive = true")
     List<PriceRule> findLatestByProductIdInAndIsActiveTrue(@Param("productIds") List<String> productIds);
 }

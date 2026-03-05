@@ -1,7 +1,7 @@
 package com.nsbm.bunmart.pricing.controller;
 
-import com.nsbm.bunmart.pricing.interface_.IDiscountRuleService;
 import com.nsbm.bunmart.pricing.model.DiscountRule;
+import com.nsbm.bunmart.pricing.interfaces.IDiscountRuleService;  // Fixed import
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,5 +38,10 @@ public class DiscountController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/by-product-ids")
+    public ResponseEntity<List<DiscountRule>> getByProductIds(@RequestBody List<String> productIds) {
+        return ResponseEntity.ok(service.getByProductIds(productIds));
     }
 }
