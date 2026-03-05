@@ -16,8 +16,9 @@ public class Product {
     @Column(nullable = false)
     private String name;
 
-    @Column(length = 1000)
-    private String image;
+    @Lob
+    @Column(name = "image_base64", columnDefinition = "TEXT")
+    private String imageBase64;
 
     @Column(length = 2000)
     private String description;
@@ -40,11 +41,11 @@ public class Product {
     public Product() {
     }
 
-    public Product(String id, String name, String image, String description, List<String> tags,
+    public Product(String id, String name, String imageBase64, String description, List<String> tags,
                   String weight, Boolean availability, Category category) {
         this.id = id;
         this.name = name;
-        this.image = image;
+        this.imageBase64 = imageBase64;
         this.description = description;
         this.tags = tags != null ? tags : new ArrayList<>();
         this.weight = weight;
@@ -68,12 +69,12 @@ public class Product {
         this.name = name;
     }
 
-    public String getImage() {
-        return image;
+    public String getImageBase64() {
+        return imageBase64;
     }
 
-    public void setImage(String image) {
-        this.image = image;
+    public void setImageBase64(String imageBase64) {
+        this.imageBase64 = imageBase64;
     }
 
     public String getDescription() {
