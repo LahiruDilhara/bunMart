@@ -1,70 +1,70 @@
 package com.nsbm.bunmart.payment.controller;
 
+import com.nsbm.bunmart.payment.dto.ArchivePaymentResponseDTO;
+import com.nsbm.bunmart.payment.dto.CreatePaymentRequestDTO;
+import com.nsbm.bunmart.payment.dto.PaymentResponseDTO;
+import com.nsbm.bunmart.payment.dto.StripeCheckoutResponseDTO;
+import com.nsbm.bunmart.payment.mappers.rest.PaymentMapper;
 import com.nsbm.bunmart.payment.model.Payment;
 import com.nsbm.bunmart.payment.services.PaymentService;
+import com.nsbm.bunmart.payment.services.StripeService;
+import com.stripe.exception.StripeException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import java.util.Map;
 
-// REST controller - only FRONTEND calls these endpoints
-// order service never calls these - it uses gRPC instead
+import java.util.Map;
 @RestController
-@RequestMapping("/api/payments")
+@RequestMapping("/api/v1/payments")
 @RequiredArgsConstructor
 public class PaymentController {
 
     private final PaymentService paymentService;
+    private final StripeService stripeService;
+    private final PaymentMapper paymentMapper;
 
-    // GET /api/payments/{paymentId}
-    // frontend calls this after being redirected to payment page
-    // response includes client_secret for stripe.js payment form
+    @PostMapping
+    public ResponseEntity<PaymentResponseDTO> createPayment(@Valid @RequestBody CreatePaymentRequestDTO request) {
+        Payment payment = paymentService.createPaymentIntent(
+                request.getOrderId(),
+                request.getAmount().toPlainString(),
+                request.getCurrencyCode(),
+                request.getUserId(),
+                request.getMetadata() != null ? request.getMetadata() : Map.of()
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(paymentMapper.paymentToPaymentResponseDTO(payment));
+    }
+
     @GetMapping("/{paymentId}")
-    public ResponseEntity<Map<String, Object>> getPayment(@PathVariable String paymentId) {
+    public ResponseEntity<PaymentResponseDTO> getPayment(@PathVariable String paymentId) {
         Payment payment = paymentService.getPaymentById(paymentId);
-        return ResponseEntity.ok(Map.of(
-                "paymentId",    payment.getPaymentId(),
-                "orderId",      payment.getOrderId(),
-                "amount",       payment.getAmount(),
-                "currency",     payment.getCurrencyCode(),
-                "status",       payment.getStatus().name(),
-                "clientSecret", payment.getClientSecret()
-        ));
+        return ResponseEntity.ok(paymentMapper.paymentToPaymentResponseDTO(payment));
     }
 
-    // GET /api/payments/order/{orderId}
-    // frontend checks payment status for a specific order
     @GetMapping("/order/{orderId}")
-    public ResponseEntity<Map<String, Object>> getPaymentByOrder(@PathVariable String orderId) {
+    public ResponseEntity<PaymentResponseDTO> getPaymentByOrder(@PathVariable String orderId) {
         Payment payment = paymentService.getPaymentByOrderId(orderId);
-        return ResponseEntity.ok(Map.of(
-                "paymentId", payment.getPaymentId(),
-                "orderId",   payment.getOrderId(),
-                "status",    payment.getStatus().name()
-        ));
+        return ResponseEntity.ok(paymentMapper.paymentToPaymentResponseDTO(payment));
     }
 
-    // PUT /api/payments/{paymentId}/status
-    // admin manually confirms payment if needed
-    // normally stripe webhook handles this automatically
-    @PutMapping("/{paymentId}/status")
-    public ResponseEntity<Map<String, Object>> confirmPayment(@PathVariable String paymentId) {
-        Payment payment = paymentService.confirmPayment(paymentId);
-        return ResponseEntity.ok(Map.of(
-                "paymentId", payment.getPaymentId(),
-                "status",    payment.getStatus().name()
-        ));
-    }
-
-    // DELETE /api/payments/{paymentId}
-    // archive old payment records - admin use only
-    @DeleteMapping("/{paymentId}")
-    public ResponseEntity<Map<String, Object>> archivePayment(@PathVariable String paymentId) {
+    @GetMapping("/{paymentId}/checkout-url")
+    public ResponseEntity<StripeCheckoutResponseDTO> getCheckoutUrl(@PathVariable String paymentId) throws StripeException {
         Payment payment = paymentService.getPaymentById(paymentId);
-        return ResponseEntity.ok(Map.of(
-                "message",   "Payment archived successfully",
-                "paymentId", payment.getPaymentId()
-        ));
+        String redirectUrl = stripeService.createCheckoutSessionUrl(payment);
+        return ResponseEntity.ok(new StripeCheckoutResponseDTO(redirectUrl));
     }
 
+    @PutMapping("/{paymentId}/status")
+    public ResponseEntity<PaymentResponseDTO> confirmPayment(@PathVariable String paymentId) {
+        Payment payment = paymentService.confirmPayment(paymentId);
+        return ResponseEntity.ok(paymentMapper.paymentToPaymentResponseDTO(payment));
+    }
+
+    @DeleteMapping("/{paymentId}")
+    public ResponseEntity<ArchivePaymentResponseDTO> archivePayment(@PathVariable String paymentId) {
+        Payment payment = paymentService.getPaymentById(paymentId);
+        return ResponseEntity.ok(paymentMapper.paymentToArchiveResponseDTO(payment));
+    }
 }

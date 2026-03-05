@@ -1,6 +1,6 @@
 package com.nsbm.bunmart.payment.errors;
 
-// thrown when stripe api call fails
+// thrown when payment processing fails (e.g. gateway unavailable)
 public class PaymentProcessingException extends RuntimeException {
     private final String orderId;
     private final String reason;

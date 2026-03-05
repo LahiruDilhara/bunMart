@@ -15,9 +15,4 @@ public interface PaymentRepository extends JpaRepository<Payment, String> {
     // SELECT * FROM payments WHERE order_id = ?
     // we use this when order service asks "did this order get paid?"
     Optional<Payment> findByOrderId(String orderId);
-
-    // stripe does not know our internal payment_id
-    // stripe only knows its own id which looks like pi_3Qxxx...
-    // so when the webhook fires we use this to find the right payment
-    Optional<Payment> findByStripePaymentIntentId(String stripePaymentIntentId);
 }
