@@ -1,58 +1,46 @@
 package com.nsbm.bunmart.kitchen.configuration;
 
-import com.nsbm.bunmart.kitchen.dto.ErrorResponseDTO;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.validation.ConstraintViolationException;
-import lombok.extern.slf4j.Slf4j;
+import com.nsbm.bunmart.kitchen.errors.ImageNotFoundException;
+import com.nsbm.bunmart.kitchen.errors.OrderServiceUnavailableException;
+import com.nsbm.bunmart.kitchen.errors.ProductionOrderNotFoundException;
+import com.nsbm.bunmart.kitchen.errors.ProductionOrderNotSavedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-@Slf4j
+import java.util.Map;
+
 @RestControllerAdvice
 public class GlobalRestExceptionHandler {
 
-    //  Handling Business Logic Failures
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<ErrorResponseDTO> handleIllegalState(IllegalStateException e) {
-        log.warn("Business rule violation: {}", e.getMessage());
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(new ErrorResponseDTO(e.getMessage()));
-    }
-
-    //  Handling Missing Resources
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ErrorResponseDTO> handleNotFound(EntityNotFoundException e) {
-        log.warn("Resource not found: {}", e.getMessage());
+    @ExceptionHandler(ProductionOrderNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleNotFound(ProductionOrderNotFoundException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponseDTO(e.getMessage()));
+                .body(Map.of("error", e.getMessage()));
     }
 
-
-    //  Handling Input Validation & Bad Requests
-    @ExceptionHandler({
-            MethodArgumentNotValidException.class,
-            ConstraintViolationException.class,
-            MissingServletRequestParameterException.class,
-            MethodArgumentTypeMismatchException.class,
-            HttpMessageNotReadableException.class
-    })
-    public ResponseEntity<ErrorResponseDTO> handleBadRequestExceptions(Exception ex) {
-        log.warn("Bad request intercepted: {}", ex.getMessage());
-        return ResponseEntity.badRequest()
-                .body(new ErrorResponseDTO("Invalid request data provided"));
+    @ExceptionHandler(ImageNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleImageNotFound(ImageNotFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", e.getMessage()));
     }
 
-    // Global Fallback for Uncaught Exceptions
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponseDTO> handleGeneric(Exception e){
-        log.error("Unexpected error occurred in Kitchen Service: ", e);
+    @ExceptionHandler(ProductionOrderNotSavedException.class)
+    public ResponseEntity<Map<String, String>> handleNotSaved(ProductionOrderNotSavedException e) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponseDTO("An internal service error occurred"));
+                .body(Map.of("error", e.getMessage()));
+    }
+
+    @ExceptionHandler(OrderServiceUnavailableException.class)
+    public ResponseEntity<Map<String, String>> handleOrderUnavailable(OrderServiceUnavailableException e) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(Map.of("error", e.getMessage()));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleGeneric(Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Internal server error"));
     }
 }
