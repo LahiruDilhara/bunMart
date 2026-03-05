@@ -1,7 +1,9 @@
 package com.nsbm.bunmart.order.configuration;
 
 import com.nsbm.bunmart.order.dto.ErrorResponseDTO;
-import com.nsbm.bunmart.order.errors.*;
+import com.nsbm.bunmart.order.errors.InvalidOrderStateException;
+import com.nsbm.bunmart.order.errors.OrderNotFoundException;
+import com.nsbm.bunmart.order.errors.OrderNotSavedException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -21,7 +23,7 @@ public class GlobalRestExceptionHandler {
     public ResponseEntity<ErrorResponseDTO> handleOrderNotFound(OrderNotFoundException e) {
         log.error(e.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponseDTO("Order not found"));
+                .body(new ErrorResponseDTO(e.getMessage()));
     }
 
     @ExceptionHandler(OrderNotSavedException.class)
@@ -36,41 +38,6 @@ public class GlobalRestExceptionHandler {
         log.error(e.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(new ErrorResponseDTO(e.getMessage()));
-    }
-
-    @ExceptionHandler(PricingServiceUnavailableException.class)
-    public ResponseEntity<ErrorResponseDTO> handlePricingUnavailable(PricingServiceUnavailableException e) {
-        log.error(e.getMessage());
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(new ErrorResponseDTO("Pricing service is unavailable"));
-    }
-
-    @ExceptionHandler(PaymentServiceUnavailableException.class)
-    public ResponseEntity<ErrorResponseDTO> handlePaymentUnavailable(PaymentServiceUnavailableException e) {
-        log.error(e.getMessage());
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(new ErrorResponseDTO("Payment service is unavailable"));
-    }
-
-    @ExceptionHandler(KitchenServiceUnavailableException.class)
-    public ResponseEntity<ErrorResponseDTO> handleKitchenUnavailable(KitchenServiceUnavailableException e) {
-        log.error(e.getMessage());
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(new ErrorResponseDTO("Kitchen service is unavailable"));
-    }
-
-    @ExceptionHandler(ShippingServiceUnavailableException.class)
-    public ResponseEntity<ErrorResponseDTO> handleShippingUnavailable(ShippingServiceUnavailableException e) {
-        log.error(e.getMessage());
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(new ErrorResponseDTO("Shipping service is unavailable"));
-    }
-
-    @ExceptionHandler(CartServiceUnavailableException.class)
-    public ResponseEntity<ErrorResponseDTO> handleCartUnavailable(CartServiceUnavailableException e) {
-        log.error(e.getMessage());
-        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(new ErrorResponseDTO("Cart service is unavailable"));
     }
 
     @ExceptionHandler(Exception.class)

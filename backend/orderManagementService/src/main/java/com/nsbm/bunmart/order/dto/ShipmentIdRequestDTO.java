@@ -1,13 +1,13 @@
 package com.nsbm.bunmart.order.dto;
 
-public class ShipOrderResponseDTO {
+import jakarta.validation.constraints.NotBlank;
+
+public class ShipmentIdRequestDTO {
+
+    @NotBlank(message = "Shipment ID is required")
     private String shipmentId;
 
-    public ShipOrderResponseDTO() {
-    }
-
-    public ShipOrderResponseDTO(String shipmentId) {
-        this.shipmentId = shipmentId;
+    public ShipmentIdRequestDTO() {
     }
 
     public String getShipmentId() {

@@ -2,25 +2,32 @@ package com.nsbm.bunmart.order.model;
 
 import jakarta.persistence.*;
 
+/**
+ * A product in an order: productId and quantity.
+ * Each order contains multiple products.
+ */
 @Entity
-@Table(name = "order_line")
-public class OrderLine {
+@Table(name = "order_products")
+public class OrderProduct {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    @Column(name = "product_id", nullable = false)
     private String productId;
 
+    @Column(nullable = false)
     private Integer quantity;
 
-    private String unitPrice;
-    private String lineTotal;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
 
-    public OrderLine() {
+    public OrderProduct() {
     }
 
-    public OrderLine(String productId, Integer quantity) {
+    public OrderProduct(String productId, Integer quantity) {
         this.productId = productId;
         this.quantity = quantity;
     }
@@ -49,19 +56,11 @@ public class OrderLine {
         this.quantity = quantity;
     }
 
-    public String getUnitPrice() {
-        return unitPrice;
+    public Order getOrder() {
+        return order;
     }
 
-    public void setUnitPrice(String unitPrice) {
-        this.unitPrice = unitPrice;
-    }
-
-    public String getLineTotal() {
-        return lineTotal;
-    }
-
-    public void setLineTotal(String lineTotal) {
-        this.lineTotal = lineTotal;
+    public void setOrder(Order order) {
+        this.order = order;
     }
 }

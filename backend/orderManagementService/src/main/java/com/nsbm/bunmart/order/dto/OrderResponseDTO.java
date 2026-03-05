@@ -12,13 +12,12 @@ public class OrderResponseDTO {
     private String shippingTotal;
     private String total;
     private String currencyCode;
-    private String shippingAddressId;
-    private String couponCodes;
-    private String productionOrderId;
+    private String shippingAddress;
     private String shipmentId;
+    /** Order contains products; each product has productId and quantity. */
+    private List<OrderProductDTO> products;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private List<OrderLineResponseDTO> orderLines;
 
     public OrderResponseDTO() {
     }
@@ -87,28 +86,12 @@ public class OrderResponseDTO {
         this.currencyCode = currencyCode;
     }
 
-    public String getShippingAddressId() {
-        return shippingAddressId;
+    public String getShippingAddress() {
+        return shippingAddress;
     }
 
-    public void setShippingAddressId(String shippingAddressId) {
-        this.shippingAddressId = shippingAddressId;
-    }
-
-    public String getCouponCodes() {
-        return couponCodes;
-    }
-
-    public void setCouponCodes(String couponCodes) {
-        this.couponCodes = couponCodes;
-    }
-
-    public String getProductionOrderId() {
-        return productionOrderId;
-    }
-
-    public void setProductionOrderId(String productionOrderId) {
-        this.productionOrderId = productionOrderId;
+    public void setShippingAddress(String shippingAddress) {
+        this.shippingAddress = shippingAddress;
     }
 
     public String getShipmentId() {
@@ -117,6 +100,14 @@ public class OrderResponseDTO {
 
     public void setShipmentId(String shipmentId) {
         this.shipmentId = shipmentId;
+    }
+
+    public List<OrderProductDTO> getProducts() {
+        return products;
+    }
+
+    public void setProducts(List<OrderProductDTO> products) {
+        this.products = products;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -133,13 +124,5 @@ public class OrderResponseDTO {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    public List<OrderLineResponseDTO> getOrderLines() {
-        return orderLines;
-    }
-
-    public void setOrderLines(List<OrderLineResponseDTO> orderLines) {
-        this.orderLines = orderLines;
     }
 }

@@ -14,9 +14,11 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
+    @Column(nullable = false)
     private String userId;
 
-    private String status = "PENDING";
+    @Column(nullable = false)
+    private String status = OrderStatus.PENDING.getValue();
 
     private String subtotal;
     private String discountTotal;
@@ -24,27 +26,20 @@ public class Order {
     private String total;
     private String currencyCode;
 
-    private String shippingAddressId;
-
-    private String couponCodes;
-
-    private String cartId;
-
-    private String productionOrderId;
+    @Column(name = "shipping_address", length = 2000)
+    private String shippingAddress;
 
     private String shipmentId;
 
+    @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt = LocalDateTime.now();
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "order_id")
-    private List<OrderLine> orderLines = new ArrayList<>();
-
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "order_id")
-    private List<OrderNote> notes = new ArrayList<>();
+    /** Each order contains multiple products; each product has productId and quantity. */
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<OrderProduct> products = new ArrayList<>();
 
     public Order() {
     }
@@ -113,36 +108,12 @@ public class Order {
         this.currencyCode = currencyCode;
     }
 
-    public String getShippingAddressId() {
-        return shippingAddressId;
+    public String getShippingAddress() {
+        return shippingAddress;
     }
 
-    public void setShippingAddressId(String shippingAddressId) {
-        this.shippingAddressId = shippingAddressId;
-    }
-
-    public String getCouponCodes() {
-        return couponCodes;
-    }
-
-    public void setCouponCodes(String couponCodes) {
-        this.couponCodes = couponCodes;
-    }
-
-    public String getCartId() {
-        return cartId;
-    }
-
-    public void setCartId(String cartId) {
-        this.cartId = cartId;
-    }
-
-    public String getProductionOrderId() {
-        return productionOrderId;
-    }
-
-    public void setProductionOrderId(String productionOrderId) {
-        this.productionOrderId = productionOrderId;
+    public void setShippingAddress(String shippingAddress) {
+        this.shippingAddress = shippingAddress;
     }
 
     public String getShipmentId() {
@@ -169,19 +140,11 @@ public class Order {
         this.updatedAt = updatedAt;
     }
 
-    public List<OrderLine> getOrderLines() {
-        return orderLines;
+    public List<OrderProduct> getProducts() {
+        return products;
     }
 
-    public void setOrderLines(List<OrderLine> orderLines) {
-        this.orderLines = orderLines;
-    }
-
-    public List<OrderNote> getNotes() {
-        return notes;
-    }
-
-    public void setNotes(List<OrderNote> notes) {
-        this.notes = notes;
+    public void setProducts(List<OrderProduct> products) {
+        this.products = products != null ? products : new ArrayList<>();
     }
 }

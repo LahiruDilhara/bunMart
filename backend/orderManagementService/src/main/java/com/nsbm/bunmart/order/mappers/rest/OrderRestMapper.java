@@ -1,25 +1,15 @@
 package com.nsbm.bunmart.order.mappers.rest;
 
-import com.nsbm.bunmart.order.dto.OrderLineResponseDTO;
+import com.nsbm.bunmart.order.dto.OrderProductDTO;
 import com.nsbm.bunmart.order.dto.OrderResponseDTO;
 import com.nsbm.bunmart.order.model.Order;
-import com.nsbm.bunmart.order.model.OrderLine;
+import com.nsbm.bunmart.order.model.OrderProduct;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
 public class OrderRestMapper {
-
-    public OrderLineResponseDTO orderLineToDTO(OrderLine line) {
-        OrderLineResponseDTO dto = new OrderLineResponseDTO();
-        dto.setId(line.getId());
-        dto.setProductId(line.getProductId());
-        dto.setQuantity(line.getQuantity());
-        dto.setUnitPrice(line.getUnitPrice());
-        dto.setLineTotal(line.getLineTotal());
-        return dto;
-    }
 
     public OrderResponseDTO orderToDTO(Order order) {
         OrderResponseDTO dto = new OrderResponseDTO();
@@ -31,17 +21,17 @@ public class OrderRestMapper {
         dto.setShippingTotal(order.getShippingTotal());
         dto.setTotal(order.getTotal());
         dto.setCurrencyCode(order.getCurrencyCode());
-        dto.setShippingAddressId(order.getShippingAddressId());
-        dto.setCouponCodes(order.getCouponCodes());
-        dto.setProductionOrderId(order.getProductionOrderId());
+        dto.setShippingAddress(order.getShippingAddress());
         dto.setShipmentId(order.getShipmentId());
+        dto.setProducts(order.getProducts() != null
+                ? order.getProducts().stream().map(this::orderProductToDTO).toList()
+                : List.of());
         dto.setCreatedAt(order.getCreatedAt());
         dto.setUpdatedAt(order.getUpdatedAt());
-        List<OrderLineResponseDTO> lines = order.getOrderLines()
-                .stream()
-                .map(this::orderLineToDTO)
-                .toList();
-        dto.setOrderLines(lines);
         return dto;
+    }
+
+    private OrderProductDTO orderProductToDTO(OrderProduct p) {
+        return new OrderProductDTO(p.getProductId(), p.getQuantity());
     }
 }
