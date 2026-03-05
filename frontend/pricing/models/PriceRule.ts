@@ -4,13 +4,13 @@ export interface PriceRule {
   unitPrice: number;
   currencyCode?: string;
   isActive?: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export interface PriceRuleFormData {
+export interface CreatePriceRuleDto {
   productId: string;
   unitPrice: number;
-  currencyCode: string;
-  isActive: boolean;
+  currencyCode?: string;
+  isActive?: boolean;
 }

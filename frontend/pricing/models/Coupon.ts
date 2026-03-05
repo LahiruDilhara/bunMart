@@ -1,25 +1,25 @@
 export interface Coupon {
   id?: number;
   code: string;
-  type: string;
+  type: string; // 'PERCENTAGE' or 'FIXED'
   value: number;
   description?: string;
-  minOrderAmount?: number;
+  minOrderAmount?: number; // In LKR
   usageLimit?: number;
   usedCount?: number;
   isActive?: boolean;
-  expiresAt?: Date;
-  createdAt?: Date;
-  updatedAt?: Date;
+  expiresAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export interface CouponFormData {
+export interface CreateCouponDto {
   code: string;
-  type: 'PERCENTAGE' | 'FIXED';
+  type: string;
   value: number;
-  description: string;
-  minOrderAmount: number;
-  usageLimit: number;
-  expiresAt: string;
-  isActive: boolean;
+  description?: string;
+  minOrderAmount?: number; // In LKR
+  usageLimit?: number;
+  isActive?: boolean;
+  expiresAt?: string;
 }

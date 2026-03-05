@@ -2,18 +2,17 @@ export interface Campaign {
   id?: number;
   name: string;
   description?: string;
-  startDate?: Date;
-  endDate?: Date;
+  startDate?: string;
+  endDate?: string;
   isActive?: boolean;
-  createdAt?: Date;
-  updatedAt?: Date;
-  discountRules?: DiscountRule[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export interface CampaignFormData {
+export interface CreateCampaignDto {
   name: string;
-  description: string;
-  startDate: string;
-  endDate: string;
-  isActive: boolean;
+  description?: string;
+  startDate?: string;
+  endDate?: string;
+  isActive?: boolean;
 }
