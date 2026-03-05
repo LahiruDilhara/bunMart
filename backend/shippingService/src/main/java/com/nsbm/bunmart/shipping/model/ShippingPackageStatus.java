@@ -1,9 +1,9 @@
 package com.nsbm.bunmart.shipping.model;
 
-public enum ShippingStatus {
+public enum ShippingPackageStatus {
     CREATED,
-    DISPATCHED,
     IN_TRANSIT,
     DELIVERED,
+    STOPPED,
     CANCELLED
 }

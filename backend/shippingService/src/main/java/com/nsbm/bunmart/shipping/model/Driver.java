@@ -14,41 +14,20 @@ public class Driver {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer driver_id;
+    private Integer id;
 
-    private String name;
+    @Column(name = "full_name", nullable = false)
+    private String fullName;
+
+    private Integer age;
     private String phone;
-    private boolean active;
 
-    public Integer getDriver_id() {
-        return driver_id;
-    }
+    @Column(nullable = false)
+    private boolean active = true;
 
-    public void setDriver_id(Integer driver_id) {
-        this.driver_id = driver_id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
-    public boolean isActive() {
-        return active;
-    }
-
-    public void setActive(boolean active) {
-        this.active = active;
-    }
+    private String vehicle;
+    @Column(name = "cargo_size")
+    private Integer cargoSize;
+    @Column(name = "max_weight")
+    private Double maxWeight;
 }

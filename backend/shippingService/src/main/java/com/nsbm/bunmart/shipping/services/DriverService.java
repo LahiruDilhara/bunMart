@@ -1,105 +1,61 @@
 package com.nsbm.bunmart.shipping.services;
 
-import com.nsbm.bunmart.shipping.dto.DriverDTO;
-import com.nsbm.bunmart.shipping.interfaces.DriverInterface;
+import com.nsbm.bunmart.shipping.errors.DriverNotFoundException;
 import com.nsbm.bunmart.shipping.model.Driver;
 import com.nsbm.bunmart.shipping.repositories.DriverRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
-public class DriverService implements DriverInterface {
+@Transactional
+public class DriverService {
 
-    @Autowired
-    private DriverRepository driverRepository;
+    private final DriverRepository driverRepository;
 
-    @Override
-    public DriverDTO createDriver(DriverDTO driverDTO){
-        Driver driver = new Driver(
-                null,
-                driverDTO.getName(),
-                driverDTO.getPhone(),
-                driverDTO.isActive()
-        );
-
-        Driver savedDriver =  driverRepository.save(driver);
-
-        DriverDTO response = new DriverDTO(
-                savedDriver.getDriver_id(),
-                savedDriver.getName(),
-                savedDriver.getPhone(),
-                savedDriver.isActive()
-        );
-
-        return response;
+    public DriverService(DriverRepository driverRepository) {
+        this.driverRepository = driverRepository;
     }
 
-    @Override
-    public List<DriverDTO> getAllDrivers(){
-        List<DriverDTO> drivers = driverRepository.findAll()
-                .stream()
-                .map(driver -> DriverDTO.builder()
-                        .driver_id(driver.getDriver_id())
-                        .name(driver.getName())
-                        .phone(driver.getPhone())
-                        .active(driver.isActive())
-                        .build())
-                .toList();
-
-        return drivers;
+    public Driver createDriver(String fullName, Integer age, String phone, String vehicle, Integer cargoSize, Double maxWeight) {
+        Driver driver = new Driver();
+        driver.setFullName(fullName);
+        driver.setAge(age);
+        driver.setPhone(phone);
+        driver.setActive(true);
+        driver.setVehicle(vehicle);
+        driver.setCargoSize(cargoSize);
+        driver.setMaxWeight(maxWeight);
+        return driverRepository.save(driver);
     }
 
-    public DriverDTO getDriverById(Integer driverID){
-
-        // Fetch driver from DB
-        Driver driver = driverRepository.findById(Long.valueOf(driverID)).orElseThrow(() -> new RuntimeException("Driver Not Found"));
-
-        // Convert entity to DTO
-        DriverDTO driverDTO = DriverDTO.builder()
-                .driver_id(driver.getDriver_id())
-                .name(driver.getName())
-                .phone(driver.getPhone())
-                .active(driver.isActive())
-                .build();
-
-        return driverDTO;
+    public Driver getDriver(Integer id) {
+        return driverRepository.findById(id)
+                .orElseThrow(() -> new DriverNotFoundException("Driver not found: " + id));
     }
 
-    public DriverDTO updateDriver(Integer driverId, DriverDTO driverDTO){
-
-        // Check if movie object exists inDB
-        Driver driver = driverRepository.findById(Long.valueOf(driverId)).orElseThrow(() -> new RuntimeException("Driver Not Found"));
-
-        // Update fields
-        driver.setName(driverDTO.getName());
-        driver.setPhone(driverDTO.getPhone());
-        driver.setActive(driverDTO.isActive());
-
-        // Save updated entity
-        Driver updatedDriver = driverRepository.save(driver);
-
-        // Convert to DTO and return
-        DriverDTO driverDTO1 =  DriverDTO.builder()
-                .driver_id(updatedDriver.getDriver_id())
-                .name(updatedDriver.getName())
-                .phone(updatedDriver.getPhone())
-                .active(updatedDriver.isActive())
-                .build();
-
-        return driverDTO1;
+    public List<Driver> getAllDrivers() {
+        return driverRepository.findAll();
     }
 
-    public String deleteDriver(Integer driverId){
+    public Driver updateDriver(Integer id, String fullName, Integer age, String phone, Boolean active,
+                              String vehicle, Integer cargoSize, Double maxWeight) {
+        Driver driver = getDriver(id);
+        if (fullName != null) driver.setFullName(fullName);
+        if (age != null) driver.setAge(age);
+        if (phone != null) driver.setPhone(phone);
+        if (active != null) driver.setActive(active);
+        if (vehicle != null) driver.setVehicle(vehicle);
+        if (cargoSize != null) driver.setCargoSize(cargoSize);
+        if (maxWeight != null) driver.setMaxWeight(maxWeight);
+        return driverRepository.save(driver);
+    }
 
-        // Check if movie object exists inDB
-        Driver driver = driverRepository.findById(Long.valueOf(driverId)).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Driver Not Found"));
-
+    public void deleteDriver(Integer id) {
+        Driver driver = getDriver(id);
         driverRepository.delete(driver);
-
-        return "Driver deleted successfully";
     }
 }
