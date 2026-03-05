@@ -3,6 +3,7 @@ package com.nsbm.bunmart.pricing.model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "campaigns")
@@ -36,6 +37,9 @@ public class Campaign {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "campaign")
+    private List<DiscountRule> discountRules;
 
     @PrePersist
     public void prePersist() {
