@@ -11,6 +11,7 @@ import java.util.Map;
 // order service never calls these - it uses gRPC instead
 @RestController
 @RequestMapping("/api/payments")
+@CrossOrigin
 @RequiredArgsConstructor
 public class PaymentController {
 
@@ -40,7 +41,10 @@ public class PaymentController {
         return ResponseEntity.ok(Map.of(
                 "paymentId", payment.getPaymentId(),
                 "orderId",   payment.getOrderId(),
-                "status",    payment.getStatus().name()
+                "status",    payment.getStatus().name(),
+                "clientSecret", payment.getClientSecret(),
+                "amount",       payment.getAmount(),
+                "currency",     payment.getCurrencyCode()
         ));
     }
 
