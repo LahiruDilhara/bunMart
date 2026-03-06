@@ -4,12 +4,15 @@ Simple FastAPI proxy. Handles 10 services: **cart**, **kitchen**, **notification
 
 ## Config (.env)
 
-For each service set:
+For each service:
 
-- `SERVICE_PREFIX` — path prefix on the gateway (e.g. `/product`)
-- `SERVICE_URL` — backend base URL (e.g. `http://localhost:8081`)
+- **SERVICE_PREFIX** — path the gateway listens on (e.g. `/cart`)
+- **SERVICE_URL** — backend base URL; may include a path (e.g. `http://localhost:8082/api/v1`)
 
-Example: request `GET /product/123` is proxied to `GET http://localhost:8081/product/123`.
+The gateway strips the prefix from the request path and appends the remainder to the service URL.
+
+**Example:** `PREFIX=/cart`, `URL=http://localhost:8082/api/v1`  
+Request `GET /cart/products/1` → proxied to `GET http://localhost:8082/api/v1/products/1`
 
 Copy `.env.example` to `.env` and set prefixes and URLs as needed.
 

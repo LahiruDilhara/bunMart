@@ -59,7 +59,10 @@ async def proxy(request: Request, path: str):
     if not route:
         raise HTTPException(404, detail=f"No service for path: {request.url.path!r}")
 
-    forward_url = build_forward_url(route.url, request.url.path, request.url.query)
+    # Strip gateway prefix and append remainder to service URL
+    # e.g. /cart/products/1 + url http://localhost:8082/api/v1 -> http://localhost:8082/api/v1/products/1
+    path_after_prefix = request.url.path[len(route.prefix) :].lstrip("/")
+    forward_url = build_forward_url(route.url, path_after_prefix, request.url.query)
     headers = filtered_request_headers(request.headers)
     if request.client:
         headers.setdefault("x-forwarded-for", request.client.host)
