@@ -36,13 +36,17 @@ out/
 ### VS Code ###
 .vscode/
 
-<<<<<<< HEAD
 ### Visual Studio ###
 .vs/
 **/.vs/
 
-
-=======
-
-/shippingService/src/main/resources/application.properties
->>>>>>> origin/main
+### Python (api-gateway) ###
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+api-gateway/venv/
