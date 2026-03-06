@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import PaymentForm from './components/PaymentForm';
 import { getPaymentByOrderId } from '@/service/paymentService';
 
@@ -53,6 +54,13 @@ export default function PaymentPage() {
 
     return (
         <div style={styles.page}>
+
+            {/* back button - goes to checkout page, no backend needed */}
+            <div style={{ marginBottom: '20px' }}>
+                <Link href="/checkout" style={{ color: '#888', textDecoration: 'none', fontSize: '14px' }}>
+                    ← Back to Checkout
+                </Link>
+            </div>
 
             <div style={styles.progressSection}>
                 <h1 style={styles.pageTitle}>Secure Checkout</h1>
