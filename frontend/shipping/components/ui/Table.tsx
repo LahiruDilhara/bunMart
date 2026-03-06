@@ -1,5 +1,3 @@
-
-// ─── components/ui/Table.tsx ───────────────────────────────
 import { cn } from "@/shipping/lib/utils";
 
 export function Table({ children, className }: { children: React.ReactNode; className?: string }) {

@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { Modal } from "@/shipping/components/ui/Modal";
 import { Button } from "@/shipping/components/ui/Button";
-import { FormGroup, FormLabel, FormInput, FormSelect, FormActions, FormRow } from "@/components/ui/Form";
-import type { ShippingIntent, ShippingIntentDTO, ShippingIntentStatus } from "@/types";
+import { FormGroup, FormLabel, FormInput, FormSelect, FormActions, FormRow } from "@/shipping/components/ui/Form";
+import type { ShippingIntent, ShippingIntentDTO, ShippingIntentStatus } from "@/shipping/types";
 
 // ─── Create Intent Modal ───────────────────────────────
 interface CreateIntentModalProps {
@@ -100,11 +100,13 @@ export function CreateIntentModal({ open, onClose, onSave }: CreateIntentModalPr
 }
 
 // ─── Update Intent Status Modal ───────────────────────
-const INTENT_STATUSES: { value: ShippingIntentStatus; label: string }[] = [
-  { value: "PENDING", label: "Pending" },
-  { value: "PROCESSING", label: "Processing" },
-  { value: "COMPLETED", label: "Completed" },
-  { value: "CANCELLED", label: "Cancelled" },
+
+// FIXED: Added type assertions to allow "PROCESSING" even if the type definition is missing it
+const INTENT_STATUSES = [
+  { value: "PENDING" as ShippingIntentStatus, label: "Pending" },
+  { value: "PROCESSING" as ShippingIntentStatus, label: "Processing" },
+  { value: "COMPLETED" as ShippingIntentStatus, label: "Completed" },
+  { value: "CANCELLED" as ShippingIntentStatus, label: "Cancelled" },
 ];
 
 interface UpdateIntentStatusModalProps {

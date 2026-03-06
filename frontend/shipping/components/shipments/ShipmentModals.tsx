@@ -16,9 +16,7 @@ import { ShipmentStatusBadge } from "@/shipping/components/ui/Badge";
 import { formatDate } from "@/shipping/lib/utils";
 import type { Shipment, ShipmentDTO, ShippingStatus } from "@/shipping/types";
 
-/* =========================================================
-   SHIPPING STATUS OPTIONS
-========================================================= */
+
 
 const SHIPPING_STATUSES: { value: ShippingStatus; label: string }[] = [
   { value: "PENDING", label: "Pending" },
@@ -28,9 +26,7 @@ const SHIPPING_STATUSES: { value: ShippingStatus; label: string }[] = [
   { value: "CANCELLED", label: "Cancelled" },
 ];
 
-/* =========================================================
-   CREATE SHIPMENT MODAL
-========================================================= */
+
 
 interface CreateShipmentModalProps {
   open: boolean;

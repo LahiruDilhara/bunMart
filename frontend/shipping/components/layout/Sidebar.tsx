@@ -20,17 +20,17 @@ const NAV_SECTIONS = [
   {
     label: "Overview",
     items: [
-      { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-      { label: "Track Shipment", href: "/tracking", icon: Search },
+      { label: "Dashboard", href: "/shipping/dashboard", icon: LayoutDashboard },
+      { label: "Track Shipment", href: "/shipping/tracking", icon: Search },
     ],
   },
   {
     label: "Manage",
     items: [
-      { label: "Shipments", href: "/shipments", icon: Package },
-      { label: "Shipping Intents", href: "/shipping-intents", icon: ClipboardList },
-      { label: "Drivers", href: "/drivers", icon: UserCircle },
-      { label: "Vehicles", href: "/vehicles", icon: Truck },
+      { label: "Shipments", href: "/shipping/shipments", icon: Package },
+      { label: "Shipping Intents", href: "/shipping/shipping-intents", icon: ClipboardList },
+      { label: "Drivers", href: "/shipping/drivers", icon: UserCircle },
+      { label: "Vehicles", href: "/shipping/vehicles", icon: Truck },
     ],
   },
 ];
@@ -40,13 +40,13 @@ export function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-white border-r border-[#dee2e6]">
       {/* Logo */}
-      <div className="px-6 border-b py-7 border-border">
-        <div className="text-xl font-black tracking-tight font-syne">
-          Bun<span className="text-accent">Mart</span>
+      <div className="px-6 border-b py-7 border-[#dee2e6]">
+        <div className="text-xl font-black tracking-tight font-syne text-[#212529]">
+          Bun<span className="text-[#f5a623]">Mart</span>
         </div>
-        <div className="text-[10px] tracking-[3px] text-muted uppercase mt-1">
+        <div className="text-[10px] tracking-[3px] text-[#6c757d] uppercase mt-1">
           Shipping Control
         </div>
       </div>
@@ -55,14 +55,12 @@ export function Sidebar() {
       <nav className="flex-1 px-3 py-5 overflow-y-auto">
         {NAV_SECTIONS.map((section) => (
           <div key={section.label} className="mb-6">
-            <div className="text-[9px] tracking-[2.5px] text-muted uppercase px-3 mb-2 font-medium">
+            <div className="text-[9px] tracking-[2.5px] text-[#6c757d] uppercase px-3 mb-2 font-semibold">
               {section.label}
             </div>
             {section.items.map((item) => {
               const Icon = item.icon;
-              const isActive =
-                pathname === item.href ||
-                (item.href !== "/" && pathname.startsWith(item.href));
+              const isActive = pathname === item.href;
               return (
                 <Link
                   key={item.href}
@@ -71,11 +69,11 @@ export function Sidebar() {
                   className={cn(
                     "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 mb-0.5 border",
                     isActive
-                      ? "bg-accent/10 text-accent border-accent/25"
-                      : "text-muted border-transparent hover:bg-surface2 hover:text-white"
+                      ? "bg-[#f5a623]/10 text-[#f5a623] border-[#f5a623]/30"
+                      : "text-[#495057] border-transparent hover:bg-[#f8f9fa] hover:text-[#212529]"
                   )}
                 >
-                  <Icon size={16} strokeWidth={isActive ? 2.5 : 1.8} />
+                  <Icon size={16} strokeWidth={isActive ? 2.5 : 2} />
                   <span className="font-medium">{item.label}</span>
                 </Link>
               );
@@ -85,15 +83,12 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="px-6 py-4 border-t border-border">
-        <div className="flex items-center gap-2 text-xs text-muted">
-          <Activity size={12} className="text-success" />
-          <span className="text-success text-[10px] tracking-wide">
-            API Connected
+      <div className="px-6 py-4 border-t border-[#dee2e6] bg-[#f8f9fa]">
+        <div className="flex items-center gap-2 text-xs text-[#6c757d]">
+          <Activity size={12} className="text-[#28a745]" />
+          <span className="text-[#28a745] text-[10px] tracking-wide font-bold">
+            API CONNECTED
           </span>
-        </div>
-        <div className="text-[10px] text-muted mt-1 tracking-wide">
-          localhost:8080
         </div>
       </div>
     </div>
@@ -101,34 +96,34 @@ export function Sidebar() {
 
   return (
     <>
-      {/* Mobile toggle button */}
+      {/* Mobile button */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="fixed z-50 p-2 text-white border rounded-lg lg:hidden top-4 left-4 bg-surface border-border"
+        className="fixed z-[100] p-2 text-[#212529] border rounded-lg lg:hidden top-4 left-4 bg-white shadow-md border-[#dee2e6]"
       >
-        {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+        {mobileOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
 
-      {/* Mobile overlay */}
+      {/* Desktop Sidebar */}
+      <aside className="fixed inset-y-0 left-0 z-50 hidden shadow-sm w-60 lg:flex">
+        <SidebarContent />
+      </aside>
+
+      {/* Mobile Sidebar overlay */}
       {mobileOpen && (
-        <div
-          className="fixed inset-0 z-40 lg:hidden bg-black/60 backdrop-blur-sm"
+        <div 
+          className="fixed inset-0 z-40 bg-black/20 lg:hidden" 
           onClick={() => setMobileOpen(false)}
         />
       )}
 
-      {/* Mobile sidebar */}
+      {/* Mobile Sidebar */}
       <aside
         className={cn(
-          "lg:hidden fixed left-0 top-0 h-full w-60 bg-surface border-r border-border z-50 transition-transform duration-300",
+          "fixed inset-y-0 left-0 z-50 w-60 transition-transform duration-300 lg:hidden bg-white shadow-xl",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <SidebarContent />
-      </aside>
-
-      {/* Desktop sidebar */}
-      <aside className="fixed flex-col hidden h-full border-r lg:flex w-60 bg-surface border-border">
         <SidebarContent />
       </aside>
     </>

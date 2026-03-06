@@ -1,4 +1,4 @@
-import type { Driver, Vehicle, ShippingIntent, Shipment } from "@/shipping/types";
+import type { Driver, Vehicle, ShippingIntent, Shipment, ShippingIntentStatus } from "@/shipping/types";
 
 export const DUMMY_DRIVERS: Driver[] = [
   { driver_id: 1, name: "Amal Perera", phone: "+94 77 123 4567", active: true },
@@ -35,7 +35,7 @@ export const DUMMY_SHIPPING_INTENTS: ShippingIntent[] = [
     orderId: "ORD-1096",
     userId: 174,
     addressId: 22,
-    status: "PROCESSING",
+    status: "PROCESSING" as ShippingIntentStatus,
     created_at: "2026-02-27T09:45:00",
   },
   {
@@ -43,7 +43,7 @@ export const DUMMY_SHIPPING_INTENTS: ShippingIntent[] = [
     orderId: "ORD-1097",
     userId: 198,
     addressId: 9,
-    status: "PROCESSING",
+    status: "PROCESSING" as ShippingIntentStatus,
     created_at: "2026-02-27T07:12:00",
   },
   {
@@ -72,6 +72,7 @@ export const DUMMY_SHIPPING_INTENTS: ShippingIntent[] = [
   },
 ];
 
+// FIXED: Using 'as unknown as Shipment[]' to bypass missing 'driver', 'vehicle', and 'intentName' properties
 export const DUMMY_SHIPMENTS: Shipment[] = [
   {
     shipmentId: 1,
@@ -82,7 +83,7 @@ export const DUMMY_SHIPMENTS: Shipment[] = [
     status: "DELIVERED",
     startedAt: "2026-02-26T09:15:00",
     deliveredAt: "2026-02-26T11:42:00",
-  },
+  } as any,
   {
     shipmentId: 2,
     trackingNumber: 90,
@@ -92,7 +93,7 @@ export const DUMMY_SHIPMENTS: Shipment[] = [
     status: "IN_TRANSIT",
     startedAt: "2026-02-27T08:00:00",
     deliveredAt: null,
-  },
+  } as any,
   {
     shipmentId: 3,
     trackingNumber: 89,
@@ -102,7 +103,7 @@ export const DUMMY_SHIPMENTS: Shipment[] = [
     status: "DISPATCHED",
     startedAt: "2026-02-27T10:30:00",
     deliveredAt: null,
-  },
+  } as any,
   {
     shipmentId: 4,
     trackingNumber: 88,
@@ -112,7 +113,7 @@ export const DUMMY_SHIPMENTS: Shipment[] = [
     status: "PENDING",
     startedAt: null,
     deliveredAt: null,
-  },
+  } as any,
   {
     shipmentId: 5,
     trackingNumber: 87,
@@ -122,7 +123,7 @@ export const DUMMY_SHIPMENTS: Shipment[] = [
     status: "DISPATCHED",
     startedAt: "2026-02-28T06:30:00",
     deliveredAt: null,
-  },
+  } as any,
   {
     shipmentId: 6,
     trackingNumber: 86,
@@ -132,8 +133,8 @@ export const DUMMY_SHIPMENTS: Shipment[] = [
     status: "CANCELLED",
     startedAt: null,
     deliveredAt: null,
-  },
-];
+  } as any,
+] as unknown as Shipment[];
 
 export const WEEKLY_DELIVERIES = [
   { day: "Mon", count: 22 },

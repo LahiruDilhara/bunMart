@@ -34,7 +34,7 @@ function BunMartLogo() {
 
 export function AppNav() {
   return (
-    <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-primary/10 px-6 md:px-10 lg:px-40 py-3 bg-white dark:bg-surface-dark sticky top-0 z-50">
+    <header className="sticky top-0 z-50 flex items-center justify-between px-6 py-3 bg-white border-b border-solid whitespace-nowrap border-primary/10 md:px-10 lg:px-40 dark:bg-surface-dark">
       <div className="flex items-center gap-8">
         <Link
           href="/"
@@ -46,37 +46,38 @@ export function AppNav() {
             BunMart
           </h2>
         </Link>
-        <label className="hidden md:flex flex-col min-w-40 max-w-64 h-10">
-          <div className="flex w-full flex-1 items-stretch rounded-lg h-full">
-            <span className="text-muted flex border-none bg-primary/10 items-center justify-center pl-4 rounded-l-lg border-r-0">
-              <span className="material-symbols-outlined text-xl">search</span>
+        <label className="flex-col hidden h-10 md:flex min-w-40 max-w-64">
+          <div className="flex items-stretch flex-1 w-full h-full rounded-lg">
+            <span className="flex items-center justify-center pl-4 border-r-0 border-none rounded-l-lg text-muted bg-primary/10">
+              <span className="text-xl material-symbols-outlined">search</span>
             </span>
             <input
               type="search"
               placeholder="Find your favorite bun"
-              className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-foreground focus:outline-0 focus:ring-0 border-none bg-primary/10 focus:border-none h-full placeholder:text-muted px-4 rounded-l-none border-l-0 pl-2 text-sm font-normal"
+              className="flex flex-1 w-full h-full min-w-0 px-4 pl-2 overflow-hidden text-sm font-normal border-l-0 border-none rounded-lg rounded-l-none resize-none form-input text-foreground focus:outline-0 focus:ring-0 bg-primary/10 focus:border-none placeholder:text-muted"
               aria-label="Search"
             />
           </div>
         </label>
       </div>
-      <div className="flex flex-1 justify-end gap-8">
-        <nav className="hidden md:flex items-center gap-9" aria-label="Main">
+      <div className="flex justify-end flex-1 gap-8">
+        <nav className="items-center hidden md:flex gap-9" aria-label="Main">
           <Link
-            href="/"
-            className="text-foreground dark:text-white text-sm font-medium hover:text-primary transition-colors"
+            href="/shipping/dashboard"
+            className="text-sm font-medium transition-colors text-foreground dark:text-white hover:text-primary"
           >
-            Shop
+            {/* Shop */}
+            Dashboard
           </Link>
           <Link
             href="/"
-            className="text-foreground dark:text-white text-sm font-medium hover:text-primary transition-colors"
+            className="text-sm font-medium transition-colors text-foreground dark:text-white hover:text-primary"
           >
             Bakeries
           </Link>
           <Link
             href="/"
-            className="text-foreground dark:text-white text-sm font-medium hover:text-primary transition-colors"
+            className="text-sm font-medium transition-colors text-foreground dark:text-white hover:text-primary"
           >
             Subscriptions
           </Link>
