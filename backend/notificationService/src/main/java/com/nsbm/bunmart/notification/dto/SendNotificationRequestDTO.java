@@ -13,13 +13,13 @@ import java.util.Map;
 @AllArgsConstructor
 public class SendNotificationRequestDTO {
 
-    @NotBlank
+    @NotBlank(message = "User ID is required")
     private String userId;
 
-    @NotBlank
+    @NotBlank(message = "Channel is required (EMAIL, SMS, IN_APP)")
     private String channel;
 
-    @NotNull
+    @NotNull(message = "Template ID is required")
     private Long templateId;
 
     private Map<String, String> templateData;
