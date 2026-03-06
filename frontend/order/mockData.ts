@@ -1,34 +1,72 @@
 export const mockOrderData = {
-  id: "ORD-MOCK-user-171024", // using timestamp part as example
-  status: "CONFIRMED",
-  datePlaced: new Date().toISOString(), // Mocking current time based on backend
+  id: "BM-10293",
+  status: "SHIPPED",
+  datePlaced: new Date("2023-10-24T10:00:00").toISOString(),
+  shipmentId: "FB8829302",
+  trackingHistory: [
+    {
+      status: "PLACED",
+      timestamp: new Date("2023-10-24T10:00:00").toISOString(),
+      description: "Verified",
+    },
+    {
+      status: "PROCESSING",
+      timestamp: new Date("2023-10-24T14:30:00").toISOString(),
+      description: "Hand-packed",
+    },
+    {
+      status: "SHIPPED",
+      timestamp: new Date("2023-10-25T09:00:00").toISOString(),
+      description: "Courier: FastBake",
+    },
+  ],
   items: [
     {
       productId: "P001",
-      name: "Mock Product P001",
+      name: "Golden Brioche Buns",
       quantity: 2,
-      unitPrice: 4.99,
-      lineTotal: 9.98,
+      unitPrice: 7.99,
+      lineTotal: 15.98,
       imageUrl: "/images/mock-product.png",
-      description: "Mock product description",
-      unit: "Pack" // Adding a dummy unit to match design
-    }
+      description: "Pack of 6",
+      unit: "450g",
+    },
+    {
+      productId: "P002",
+      name: "Artisanal Sourdough",
+      quantity: 1,
+      unitPrice: 12.50,
+      lineTotal: 12.50,
+      imageUrl: "/images/mock-product.png",
+      description: "Classic White",
+      unit: "800g",
+    },
+    {
+      productId: "P003",
+      name: "Cinnamon Rolls",
+      quantity: 1,
+      unitPrice: 9.99,
+      lineTotal: 9.99,
+      imageUrl: "/images/mock-product.png",
+      description: "Honey Glazed",
+      unit: "4pcs",
+    },
   ],
   summary: {
-    subtotal: 9.98,
-    shipping: 2.99,
-    tax: 0.00,
-    total: 12.97,
+    subtotal: 38.47,
+    shipping: 5.99,
+    tax: 2.19,
+    total: 46.65,
   },
   shippingAddress: {
     name: "Jonathan Baker",
     addressLine1: "123 Sourdough Lane",
     addressLine2: "Breadview Heights, CA 90210",
     country: "United States",
-    phoneNumber: "+1 (555) 0123-4567"
+    phoneNumber: "+1 (555) 0123-4567",
   },
   paymentMethod: {
     brand: "VISA",
-    last4: "4242"
-  }
+    last4: "4242",
+  },
 };

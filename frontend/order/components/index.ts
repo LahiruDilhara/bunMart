@@ -1,7 +1,6 @@
-export { OrderBreadcrumbs } from "./OrderBreadcrumbs";
-export { OrderHeader } from "./OrderHeader";
+export { OrderHeader, OrderStatusBadge } from "./OrderHeader";
 export { OrderStatus } from "./OrderStatus";
 export { OrderItemsList } from "./OrderItemsList";
 export { OrderSummary } from "./OrderSummary";
-export { OrderShippingAddress, OrderPaymentMethod, OrderMap } from "./OrderDetailsGrid";
-
+export { OrderShippingCard } from "./OrderDetailsGrid";
+export { OrderBreadcrumbs } from "./OrderBreadcrumbs";

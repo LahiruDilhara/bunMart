@@ -2,73 +2,66 @@
 
 import Image from "next/image";
 
-type OrderItemProps = {
-    item: {
-        productId: string;
-        name: string;
-        quantity: number;
-        unitPrice: number;
-        lineTotal: number;
-        imageUrl: string;
-        description: string;
-        unit: string;
-    };
+type OrderItem = {
+    productId: string;
+    name?: string;
+    quantity: number;
+    unitPrice: number;
+    lineTotal: number;
+    imageUrl?: string;
+    description?: string;
+    unit?: string;
 };
 
-export function OrderItemCard({ item }: OrderItemProps) {
-    // Use a fallback image if necessary, but according to mock, it has a mock image
-    const fallbackImg = "/images/mock-product.png";
-
-    return (
-        <div className="flex items-center justify-between py-6 border-b border-border last:border-0 gap-4">
-            <div className="flex items-center gap-4">
-                <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 shrink-0">
-                    <Image
-                        src={item.imageUrl || fallbackImg}
-                        alt={item.name}
-                        fill
-                        className="object-cover"
-                    />
-                </div>
-                <div className="flex flex-col">
-                    <h3 className="text-foreground dark:text-white font-semibold text-base">
-                        {item.name}
-                    </h3>
-                    <p className="text-muted text-sm mb-1">
-                        {item.description} • {item.unit}
-                    </p>
-                    <p className="text-orange-500 text-sm font-medium">
-                        Quantity: {item.quantity}
-                    </p>
-                </div>
-            </div>
-            <div className="flex flex-col items-end">
-                <span className="text-foreground dark:text-white font-bold text-lg">
-                    ${item.lineTotal.toFixed(2)}
-                </span>
-                <span className="text-muted text-xs">
-                    ${item.unitPrice.toFixed(2)} each
-                </span>
-            </div>
-        </div>
-    );
-}
-
 type OrderItemsListProps = {
-    items: Array<OrderItemProps["item"]>;
+    items: OrderItem[];
 };
 
 export function OrderItemsList({ items }: OrderItemsListProps) {
-    const totalItems = items.reduce((acc, item) => acc + item.quantity, 0);
+    const fallbackImg = "/images/mock-product.png";
 
     return (
-        <div className="bg-white dark:bg-background-dark border border-border rounded-xl p-6 shadow-sm mb-6">
-            <h2 className="text-xl font-bold mb-2 text-foreground dark:text-white">
-                Order Items ({totalItems})
-            </h2>
-            <div className="flex flex-col">
+        <div className="space-y-4">
+            <div className="flex justify-between items-center px-1">
+                <h2 className="font-bold text-2xl text-foreground dark:text-white">
+                    Order Items ({items.length})
+                </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {items.map((item) => (
-                    <OrderItemCard key={item.productId} item={item} />
+                    <div
+                        key={item.productId}
+                        className="bg-white dark:bg-card-dark p-4 rounded-3xl border border-slate-100 dark:border-slate-800 group hover:shadow-lg transition-all"
+                    >
+                        <div className="flex flex-col gap-4">
+                            <div className="relative w-full h-32 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-700">
+                                <Image
+                                    src={item.imageUrl || fallbackImg}
+                                    alt={item.name ?? "Product"}
+                                    fill
+                                    className="object-cover"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <div>
+                                    <h3 className="font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors">
+                                        {item.name ?? `Product ${item.productId}`}
+                                    </h3>
+                                    <p className="text-xs text-slate-500 font-medium">
+                                        {item.description ? `${item.description} • ` : ""}{item.unit ?? "Pack"}
+                                    </p>
+                                </div>
+                                <div className="flex justify-between items-center pt-2 border-t border-slate-50 dark:border-slate-800">
+                                    <span className="text-xs font-bold text-primary bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded">
+                                        Qty: {item.quantity}
+                                    </span>
+                                    <span className="font-extrabold text-lg text-foreground dark:text-white">
+                                        ${item.lineTotal.toFixed(2)}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 ))}
             </div>
         </div>
