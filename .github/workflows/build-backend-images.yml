@@ -32,51 +32,51 @@ jobs:
         include:
           - service: api-gateway
             context: backend/api-gateway
-            dockerfile: Dockerfile
+            dockerfile: backend/api-gateway/Dockerfile
             image_name: api-gateway
           - service: cartService
             context: backend
-            dockerfile: cartService/Dockerfile
+            dockerfile: backend/cartService/Dockerfile
             image_name: cartservice
           - service: kitchenService
             context: backend
-            dockerfile: kitchenService/Dockerfile
+            dockerfile: backend/kitchenService/Dockerfile
             image_name: kitchenservice
           - service: notificationService
             context: backend
-            dockerfile: notificationService/Dockerfile
+            dockerfile: backend/notificationService/Dockerfile
             image_name: notificationservice
           - service: orderManagementService
             context: backend
-            dockerfile: orderManagementService/Dockerfile
+            dockerfile: backend/orderManagementService/Dockerfile
             image_name: ordermanagementservice
           - service: paymentService
             context: backend
-            dockerfile: paymentService/Dockerfile
+            dockerfile: backend/paymentService/Dockerfile
             image_name: paymentservice
           - service: pricingService
             context: backend
-            dockerfile: pricingService/Dockerfile
+            dockerfile: backend/pricingService/Dockerfile
             image_name: pricingservice
           - service: productService
             context: backend
-            dockerfile: productService/Dockerfile
+            dockerfile: backend/productService/Dockerfile
             image_name: productservice
           - service: reviewService
             context: backend
-            dockerfile: reviewService/Dockerfile
+            dockerfile: backend/reviewService/Dockerfile
             image_name: reviewservice
           - service: shippingService
             context: backend
-            dockerfile: shippingService/Dockerfile
+            dockerfile: backend/shippingService/Dockerfile
             image_name: shippingservice
           - service: userAuthentication
             context: backend
-            dockerfile: userAuthentication/Dockerfile
+            dockerfile: backend/userAuthentication/Dockerfile
             image_name: userauthenticationservice
           - service: userProfileService
             context: backend
-            dockerfile: userProfileService/Dockerfile
+            dockerfile: backend/userProfileService/Dockerfile
             image_name: userprofileservice
 
     steps:
