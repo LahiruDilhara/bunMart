@@ -1,10 +1,10 @@
 /**
  * API configuration – single place to update gateway base URL.
- * Set VITE_API_GATEWAY_URL in .env (e.g. http://localhost:8080).
+ * Set VITE_API_GATEWAY_URL in .env (e.g. https://api.lahirudilhara.me).
  * Auth and user profile are served by the same backend (userAuthentication); gateway prefixes: /auth, /user.
  */
 const gatewayBase =
-  import.meta.env.VITE_API_GATEWAY_URL ?? "http://localhost:8080";
+  import.meta.env.VITE_API_GATEWAY_URL ?? "https://api.lahirudilhara.me";
 
 export const apiGatewayUrl = String(gatewayBase).replace(/\/$/, "");
 

@@ -1,13 +1,9 @@
-# notificationService — multi-stage, Alpine runtime (Gradle image avoids network download)
-FROM gradle:9.3.1-jdk25-alpine AS builder
-RUN apk add --no-cache bash
+# notificationService — multi-stage: glibc-based builder (for protoc-gen-grpc-java), Alpine runtime
+FROM gradle:9.3.1-jdk25 AS builder
 WORKDIR /app
 COPY proto /app/proto
 COPY notificationService /app/notificationService
-# protoc-gen-grpc-java is downloaded with .exe extension; chmod +x so it runs on Linux
-RUN cd /app/proto && gradle generateProto --no-daemon || true && \
-    find /home/gradle/.gradle/caches -name "protoc-gen-grpc-java*.exe" -exec chmod +x {} \; 2>/dev/null || true && \
-    gradle publishToMavenLocal --no-daemon && \
+RUN cd /app/proto && gradle publishToMavenLocal --no-daemon && \
     cd /app/notificationService && gradle bootJar --no-daemon
 
 FROM eclipse-temurin:25-jre-alpine
