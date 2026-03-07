@@ -28,7 +28,7 @@ This document provides a central analysis of the BunMart microservice-based back
 | 7 | **Shipping** | `shippingService/` | Shipments, drivers; CreateShipment from Order; SetOrderShipping → Order | MySQL (config placeholder) |
 | 8 | **Notification** | (folder TBD) | Templates, channels; SendNotification; calls User for email/phone | (not yet in backend dirs) |
 | 9 | **Review & Rating** | `reviewService/` | Reviews, ratings, moderation; ValidateProducts, ValidateUser | (minimal config) |
-| 10 | **User Management** | `userProfileService/` | Users, addresses (delivery/billing), preferences | (minimal config) |
+| 10 | **User / Auth** | `userAuthentication/` | Sign up, sign in, JWT, profile, addresses (all in one service) | (minimal config) |
 
 **Additional backend components:**
 
@@ -61,7 +61,7 @@ This document provides a central analysis of the BunMart microservice-based back
 | Shipping        | 5438      | bunmart_shipping   | `jdbc:postgresql://localhost:5438/bunmart_shipping` |
 | Notification    | 5439      | bunmart_notification | `jdbc:postgresql://localhost:5439/bunmart_notification` |
 | Review          | 5440      | bunmart_review     | `jdbc:postgresql://localhost:5440/bunmart_review` |
-| User Management | 5441      | bunmart_user       | `jdbc:postgresql://localhost:5441/bunmart_user` |
+| User / Auth       | 5442      | bunmart_auth       | `jdbc:postgresql://localhost:5442/bunmart_auth` |
 
 ---
 
@@ -75,7 +75,7 @@ This document provides a central analysis of the BunMart microservice-based back
 - **Payment** → Order: `NotifyPaymentResult`; Notification: `SendNotification`.
 - **Shipping** → Order: `SetOrderShipping`; User: `GetUser` (optional); Notification: `SendNotification`.
 - **Notification** → User: `GetUser` (for email/phone).
-- **User Management** → Notification: `SendNotification`.
+- **User / Auth** → Notification: `SendNotification`.
 - **Review** → Product Catalog: `ValidateProducts`; User: `ValidateUser`; Notification: `SendNotification`; Order: optional (e.g. ValidateOrderDeliveredForUser).
 
 Full matrix: see [WHO_CALLS_WHOM.md](./WHO_CALLS_WHOM.md).
@@ -111,7 +111,7 @@ backend/
 ├── paymentService/
 ├── shippingService/
 ├── reviewService/
-├── userProfileService/          # User Management
+├── userAuthentication/     # Auth + profile, addresses (merged)
 └── mock/
 ```
 
@@ -139,7 +139,7 @@ Notification service directory is not yet present; proto defines `bunmart.notifi
 ## 8. Discussion Topics
 
 - **DB consolidation:** Move Pricing, Payment, Shipping to PostgreSQL using the 10-instance compose; align connection strings and drivers.
-- **Ports:** Each of the 10 Postgres instances uses a distinct port (5432–5441) so all can run simultaneously.
+- **Ports:** Each of the 10 Postgres instances uses a distinct port (5432–5440 for product through review, 5442 for auth) so all can run simultaneously.
 - **Notification service:** Add `notificationService/` and point it to `db-notification` in the central compose.
 - **Order/Product/Review/User:** Wire each to its dedicated Postgres instance and add `application.properties` (or profile-specific) with the correct JDBC URL.
 - **API Gateway / BFF:** Clarify whether api-gateway acts as BFF (aggregating REST from services) and how it discovers service URLs.

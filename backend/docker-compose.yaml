@@ -1,9 +1,233 @@
 # BunMart Backend — Central Docker Compose
-# 10 minimal PostgreSQL Alpine instances (one per microservice)
-# Usage: from backend/ run:  docker compose -f docker-compose.yaml up -d
-# Connect: localhost:5432 (product) .. localhost:5441 (user)
+# DBs: postgres:16-alpine. Services: Eclipse Temurin 25 JRE Alpine (Java), python:3.13-alpine (api-gateway).
+# Usage: from backend/ run:  docker compose -f docker-compose.yaml up -d --build
+# (First time or after code changes use --build; pull_policy: build avoids "pull access denied" for local images.)
+# Connect: localhost:5432 (product) .. localhost:5442 (auth); API gateway: localhost:8080
 
 services:
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    image: bunmart-api-gateway:latest
+    pull_policy: build
+    container_name: bunmart-api-gateway
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      GATEWAY_NAME: bunmart-api-gateway
+      GATEWAY_TIMEOUT_SECONDS: "30"
+      AUTH_PREFIX: /auth
+      AUTH_URL: http://userauthenticationservice:6001/api/v1/auth
+      CART_PREFIX: /cart
+      CART_URL: http://cartservice:6004/api/v1/cart
+      KITCHEN_PREFIX: /kitchen
+      KITCHEN_URL: http://kitchenservice:6008/api/v1/kitchen-orders
+      NOTIFICATION_PREFIX: /notification
+      NOTIFICATION_URL: http://notificationservice:6009/api/v1/notifications
+      ORDER_PREFIX: /order
+      ORDER_URL: http://ordermanagementservice:6005/api/v1/orders
+      PAYMENT_PREFIX: /payment
+      PAYMENT_URL: http://paymentservice:6006/api/v1/payments
+      PRICING_PREFIX: /pricing
+      PRICING_URL: http://pricingservice:6007/api/v1/pricing
+      PRODUCT_PREFIX: /product
+      PRODUCT_URL: http://productservice:6003/api/v1
+      REVIEW_PREFIX: /review
+      REVIEW_URL: http://reviewservice:6010/api/v1/reviews
+      SHIPPING_PREFIX: /shipping
+      SHIPPING_URL: http://shippingservice:6011/api/v1/shipping
+      USER_PREFIX: /user
+      USER_URL: http://userauthenticationservice:6001/api/v1/users
+    depends_on:
+      - userauthenticationservice
+      - cartservice
+      - productservice
+
+  cartservice:
+    build:
+      context: .
+      dockerfile: cartService/Dockerfile
+    image: bunmart-cartservice:latest
+    pull_policy: build
+    container_name: bunmart-cartservice
+    restart: unless-stopped
+    ports:
+      - "6004:6004"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-cart:5432/bunmart
+      SPRING_DATASOURCE_USERNAME: bunmart
+      SPRING_DATASOURCE_PASSWORD: bunmart_pass
+    depends_on:
+      db-cart:
+        condition: service_healthy
+
+  kitchenservice:
+    build:
+      context: .
+      dockerfile: kitchenService/Dockerfile
+    image: bunmart-kitchenservice:latest
+    pull_policy: build
+    container_name: bunmart-kitchenservice
+    restart: unless-stopped
+    ports:
+      - "6008:6008"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-kitchen:5432/kitchenDB
+      SPRING_DATASOURCE_USERNAME: bunmart
+      SPRING_DATASOURCE_PASSWORD: bunmart_pass
+    depends_on:
+      db-kitchen:
+        condition: service_healthy
+
+  notificationservice:
+    build:
+      context: .
+      dockerfile: notificationService/Dockerfile
+    image: bunmart-notificationservice:latest
+    pull_policy: build
+    container_name: bunmart-notificationservice
+    restart: unless-stopped
+    ports:
+      - "6009:6009"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-notification:5432/bunmart_notification
+      SPRING_DATASOURCE_USERNAME: bunmart
+      SPRING_DATASOURCE_PASSWORD: bunmart_pass
+    depends_on:
+      db-notification:
+        condition: service_healthy
+
+  ordermanagementservice:
+    build:
+      context: .
+      dockerfile: orderManagementService/Dockerfile
+    image: bunmart-ordermanagementservice:latest
+    pull_policy: build
+    container_name: bunmart-ordermanagementservice
+    restart: unless-stopped
+    ports:
+      - "6005:6005"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-order:5432/bunmart_order
+      SPRING_DATASOURCE_USERNAME: bunmart
+      SPRING_DATASOURCE_PASSWORD: bunmart_pass
+      GRPC_CLIENT_CARTSERVICE_ADDRESS: static://cartservice:9003
+    depends_on:
+      db-order:
+        condition: service_healthy
+      cartservice:
+        condition: service_started
+
+  paymentservice:
+    build:
+      context: .
+      dockerfile: paymentService/Dockerfile
+    image: bunmart-paymentservice:latest
+    pull_policy: build
+    container_name: bunmart-paymentservice
+    restart: unless-stopped
+    ports:
+      - "6006:6006"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-payment:5432/bunmart_payment
+      SPRING_DATASOURCE_USERNAME: bunmart
+      SPRING_DATASOURCE_PASSWORD: bunmart_pass
+    depends_on:
+      db-payment:
+        condition: service_healthy
+
+  pricingservice:
+    build:
+      context: .
+      dockerfile: pricingService/Dockerfile
+    image: bunmart-pricingservice:latest
+    pull_policy: build
+    container_name: bunmart-pricingservice
+    restart: unless-stopped
+    ports:
+      - "6007:6007"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-pricing:5432/bunmart_pricing
+      SPRING_DATASOURCE_USERNAME: bunmart
+      SPRING_DATASOURCE_PASSWORD: bunmart_pass
+    depends_on:
+      db-pricing:
+        condition: service_healthy
+
+  productservice:
+    build:
+      context: .
+      dockerfile: productService/Dockerfile
+    image: bunmart-productservice:latest
+    pull_policy: build
+    container_name: bunmart-productservice
+    restart: unless-stopped
+    ports:
+      - "6003:6003"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-product:5432/bunmart_product
+      SPRING_DATASOURCE_USERNAME: bunmart
+      SPRING_DATASOURCE_PASSWORD: bunmart_pass
+    depends_on:
+      db-product:
+        condition: service_healthy
+
+  reviewservice:
+    build:
+      context: .
+      dockerfile: reviewService/Dockerfile
+    image: bunmart-reviewservice:latest
+    pull_policy: build
+    container_name: bunmart-reviewservice
+    restart: unless-stopped
+    ports:
+      - "6010:6010"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-review:5432/bunmart_review
+      SPRING_DATASOURCE_USERNAME: bunmart
+      SPRING_DATASOURCE_PASSWORD: bunmart_pass
+    depends_on:
+      db-review:
+        condition: service_healthy
+
+  shippingservice:
+    build:
+      context: .
+      dockerfile: shippingService/Dockerfile
+    image: bunmart-shippingservice:latest
+    pull_policy: build
+    container_name: bunmart-shippingservice
+    restart: unless-stopped
+    ports:
+      - "6011:6011"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-shipping:5432/bunmart_shipping
+      SPRING_DATASOURCE_USERNAME: bunmart
+      SPRING_DATASOURCE_PASSWORD: bunmart_pass
+    depends_on:
+      db-shipping:
+        condition: service_healthy
+
+  userauthenticationservice:
+    build:
+      context: .
+      dockerfile: userAuthentication/Dockerfile
+    image: bunmart-userauthenticationservice:latest
+    pull_policy: build
+    container_name: bunmart-userauthenticationservice
+    restart: unless-stopped
+    ports:
+      - "6001:6001"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db-auth:5432/bunmart_auth
+      SPRING_DATASOURCE_USERNAME: bunmart
+      SPRING_DATASOURCE_PASSWORD: bunmart_pass
+    depends_on:
+      db-auth:
+        condition: service_healthy
+
   db-product:
     image: postgres:16-alpine
     container_name: bunmart-db-product
@@ -166,20 +390,20 @@ services:
       timeout: 5s
       retries: 5
 
-  db-user:
+  db-auth:
     image: postgres:16-alpine
-    container_name: bunmart-db-user
+    container_name: bunmart-db-auth
     restart: unless-stopped
     ports:
-      - "5441:5432"
+      - "5442:5432"
     environment:
-      POSTGRES_DB: bunmart_user
+      POSTGRES_DB: bunmart_auth
       POSTGRES_USER: bunmart
       POSTGRES_PASSWORD: bunmart_pass
     volumes:
-      - db_user_data:/var/lib/postgresql/data
+      - db_auth_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bunmart -d bunmart_user"]
+      test: ["CMD-SHELL", "pg_isready -U bunmart -d bunmart_auth"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -194,4 +418,4 @@ volumes:
   db_shipping_data:
   db_notification_data:
   db_review_data:
-  db_user_data:
+  db_auth_data:

@@ -16,6 +16,9 @@ public class CalculatePriceRequestDTO {
     @NotEmpty(message = "Items list is required")
     private List<@NotNull @Valid LineItemDTO> items;
 
+    /** Optional coupon code for order-level discount (coupon with null productId). */
+    private String couponCode;
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

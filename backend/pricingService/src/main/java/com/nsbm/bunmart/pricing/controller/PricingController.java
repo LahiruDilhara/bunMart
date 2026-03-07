@@ -28,7 +28,8 @@ public class PricingController {
         List<Integer> quantities = dto.getItems().stream()
                 .map(CalculatePriceRequestDTO.LineItemDTO::getQuantity)
                 .collect(Collectors.toList());
-        CalculatePriceResponseDTO result = pricingCalculationService.calculate(productIds, quantities);
+        CalculatePriceResponseDTO result = pricingCalculationService.calculate(
+                productIds, quantities, dto.getCouponCode());
         return ResponseEntity.ok(result);
     }
 

@@ -34,6 +34,9 @@ public class ShippingPackage {
     @Column(name = "order_id", nullable = false)
     private String orderId;
 
+    @Column(name = "user_id")
+    private String userId;
+
     @Column(name = "shipped_at")
     private Instant shippedAt;
 

@@ -4,6 +4,7 @@ import com.nsbm.bunmart.notification.errors.NotificationNotFoundException;
 import com.nsbm.bunmart.notification.errors.NotificationSendFailedException;
 import com.nsbm.bunmart.notification.errors.RuleNotFoundException;
 import com.nsbm.bunmart.notification.errors.TemplateNotFoundException;
+import com.nsbm.bunmart.notification.dto.SendNotificationRequestDTO;
 import com.nsbm.bunmart.notification.model.Notification;
 import com.nsbm.bunmart.notification.model.NotificationRule;
 import com.nsbm.bunmart.notification.model.NotificationTemplate;
@@ -11,6 +12,9 @@ import com.nsbm.bunmart.notification.repositories.NotificationRepository;
 import com.nsbm.bunmart.notification.repositories.RuleRepository;
 import com.nsbm.bunmart.notification.repositories.TemplateRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +40,21 @@ public class NotificationService {
     }
 
     // ==================== Notification ====================
+
+    /**
+     * Sends a notification using the provided DTO (e.g. from gRPC or REST).
+     */
+    public Notification sendNotification(SendNotificationRequestDTO dto) {
+        return sendNotification(
+                dto.getUserId(),
+                dto.getChannel(),
+                dto.getTemplateId(),
+                dto.getTemplateData(),
+                dto.getSubject(),
+                dto.getReferenceType(),
+                dto.getReferenceId()
+        );
+    }
 
     public Notification sendNotification(String userId, String channel, Long templateId,
                                          Map<String, String> templateData, String subject,
@@ -70,6 +89,55 @@ public class NotificationService {
         }
 
         return notificationRepository.save(notification);
+    }
+
+    /**
+     * Send an in-app notification without a template (direct subject and body).
+     * Used by admin broadcast and system events (order, payment, etc.).
+     */
+    public Notification sendInAppDirect(String userId, String subject, String body,
+                                        String referenceType, String referenceId) {
+        Notification notification = new Notification();
+        notification.setUserId(userId);
+        notification.setChannel("IN_APP");
+        notification.setTemplateId(null);
+        notification.setSubject(subject != null ? subject : "");
+        notification.setBody(body != null ? body : "");
+        notification.setReferenceType(referenceType);
+        notification.setReferenceId(referenceId);
+        notification.setStatus("SENT");
+        notification.setRead(false);
+        notification.setCreatedAt(LocalDateTime.now());
+        notification.setUpdatedAt(LocalDateTime.now());
+        log.info("In-app notification sent to user={} subject={}", userId, subject);
+        return notificationRepository.save(notification);
+    }
+
+    /**
+     * Send the same in-app notification to multiple users (e.g. admin broadcast).
+     */
+    public List<Notification> sendInAppToUsers(List<String> userIds, String subject, String body) {
+        if (userIds == null || userIds.isEmpty()) return List.of();
+        return userIds.stream()
+                .distinct()
+                .map(userId -> sendInAppDirect(userId, subject, body, "ADMIN", null))
+                .toList();
+    }
+
+    public long getUnreadCountByUserId(String userId) {
+        return notificationRepository.countByUserIdAndReadFalse(userId);
+    }
+
+    public Notification markAsRead(Long id) {
+        Notification n = getNotificationById(id);
+        n.setRead(true);
+        n.setUpdatedAt(LocalDateTime.now());
+        return notificationRepository.save(n);
+    }
+
+    public List<Notification> getNotificationsByUserId(String userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, Math.max(1, size), Sort.by(Sort.Direction.DESC, "createdAt"));
+        return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
     }
 
     public List<Notification> getAllNotifications() {

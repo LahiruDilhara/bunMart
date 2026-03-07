@@ -41,6 +41,12 @@ public class GlobalRestExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponseDTO(e.getMessage()));
     }
 
+    @ExceptionHandler(LinesNotDoneException.class)
+    public ResponseEntity<ErrorResponseDTO> handleLinesNotDone(LinesNotDoneException e) {
+        log.warn(e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponseDTO(e.getMessage()));
+    }
+
     @ExceptionHandler(OrderServiceUnavailableException.class)
     public ResponseEntity<ErrorResponseDTO> handleOrderUnavailable(OrderServiceUnavailableException e) {
         log.error(e.getMessage());

@@ -19,6 +19,7 @@ public class OrderRestMapper {
         dto.setSubtotal(order.getSubtotal());
         dto.setDiscountTotal(order.getDiscountTotal());
         dto.setShippingTotal(order.getShippingTotal());
+        dto.setTaxTotal(order.getTaxTotal());
         dto.setTotal(order.getTotal());
         dto.setCurrencyCode(order.getCurrencyCode());
         dto.setShippingAddress(order.getShippingAddress());

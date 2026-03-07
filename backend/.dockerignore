@@ -1,0 +1,22 @@
+# Build outputs
+**/build/
+**/.gradle/
+**/out/
+# Proto and services are copied explicitly; ignore the rest
+*.iml
+.idea/
+.git/
+.gitignore
+*.md
+.env
+.env.*
+!api-gateway/.env.example
+# Python
+**/__pycache__/
+**/*.pyc
+**/venv/
+**/.venv/
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore

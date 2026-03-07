@@ -39,7 +39,7 @@ def filtered_response_headers(items: Iterable[tuple[str, str]]) -> dict[str, str
 
 
 def build_forward_url(base_url: str, path_after_prefix: str, query: str) -> str:
-    """Append path_after_prefix to base_url's path. base_url may include a path (e.g. http://host:8082/api/v1)."""
+    """Append path_after_prefix to base_url's path. base_url may include a path (e.g. http://host:6001/api/v1)."""
     base = httpx.URL(base_url)
     base_path = (base.path or "").rstrip("/") or "/"
     extra = (path_after_prefix or "").strip().lstrip("/")

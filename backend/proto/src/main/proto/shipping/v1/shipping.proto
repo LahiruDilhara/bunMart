@@ -7,45 +7,53 @@ import "google/protobuf/timestamp.proto";
 option java_package = "com.nsbm.bunmart.shipping.v1";
 option java_multiple_files = true;
 
-// ShippingService — shipments. Order calls CreateShipment; Shipping calls Order.SetOrderShipping when details submitted.
+// Aligned with ShippingPackage entity / CreateShippingPackageRequestDTO / ShippingPackageResponseDTO.
+// ShippingPackage: id, weight, destinationAddress, sourceAddress, totalPrice, orderId, shippedAt, progress, status, driver.
 service ShippingService {
-  rpc CreateShipment(CreateShipmentRequest) returns (CreateShipmentResponse);
-  rpc GetShipmentStatus(GetShipmentStatusRequest) returns (GetShipmentStatusResponse);
-  rpc UpdateShipmentStatus(UpdateShipmentStatusRequest) returns (UpdateShipmentStatusResponse);
+  rpc CreateShippingPackage(CreateShippingPackageRequest) returns (CreateShippingPackageResponse);
+  rpc GetShippingPackage(GetShippingPackageRequest) returns (GetShippingPackageResponse);
+  rpc UpdateShippingPackageStatus(UpdateShippingPackageStatusRequest) returns (UpdateShippingPackageStatusResponse);
 }
 
-message CreateShipmentRequest {
-  string order_id = 1;
-  string user_id = 2;
-  string shipping_address_id = 3;
-  repeated string product_ids = 4;
-  string carrier = 5;
-}
-
-message CreateShipmentResponse {
-  string shipment_id = 1;
-  string tracking_number = 2;
-  string status = 3;
-}
-
-message GetShipmentStatusRequest {
-  string shipment_id = 1;
-}
-
-message GetShipmentStatusResponse {
-  string shipment_id = 1;
+message CreateShippingPackageRequest {
+  string user_id = 1;
   string order_id = 2;
-  string tracking_number = 3;
-  string status = 4;
-  google.protobuf.Timestamp estimated_delivery = 5;
-  google.protobuf.Timestamp updated_at = 6;
+  double weight = 3;
+  string destination_address = 4;
+  string source_address = 5;
+  string total_price = 6;
+  string driver_id = 7;
 }
 
-message UpdateShipmentStatusRequest {
-  string shipment_id = 1;
+message CreateShippingPackageResponse {
+  string shipping_package_id = 1;
   string status = 2;
 }
 
-message UpdateShipmentStatusResponse {
+message GetShippingPackageRequest {
+  string shipping_package_id = 1;
+}
+
+message GetShippingPackageResponse {
+  string shipping_package_id = 1;
+  string order_id = 2;
+  double weight = 3;
+  string destination_address = 4;
+  string source_address = 5;
+  string total_price = 6;
+  int32 progress = 7;
+  string status = 8;
+  string driver_id = 9;
+  google.protobuf.Timestamp shipped_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message UpdateShippingPackageStatusRequest {
+  string shipping_package_id = 1;
+  string status = 2;
+  int32 progress = 3;
+}
+
+message UpdateShippingPackageStatusResponse {
   bool updated = 1;
 }

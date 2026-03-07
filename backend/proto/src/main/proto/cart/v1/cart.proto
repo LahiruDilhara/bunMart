@@ -5,24 +5,24 @@ package bunmart.cart.v1;
 option java_package = "com.nsbm.bunmart.cart.v1";
 option java_multiple_files = true;
 
-// CartService — carts and checkout. Product Catalog calls AddCartItem when frontend adds to cart; Cart calls Order.CreateOrderIntent; Order calls InvalidateCart after order placed.
+// Aligned with Cart / CartItem entity and CartResponseDTO / CartItemResponseDTO: id, userId, cartItems (id, productId, quantity).
 service CartService {
   rpc GetCart(GetCartRequest) returns (GetCartResponse);
-  rpc AddCartItem(AddCartItemRequest) returns (AddCartItemResponse);
-  rpc InvalidateCart(InvalidateCartRequest) returns (InvalidateCartResponse);
+  rpc RemoveCartItems(RemoveCartItemsRequest) returns (RemoveCartItemsResponse);
 }
 
+// CartItemResponseDTO: id, productId, quantity.
 message CartItemInfo {
-  string cart_item_id = 1;
+  string item_id = 1;   // CartItem.id (Integer) as string for proto
   string product_id = 2;
   int32 quantity = 3;
 }
 
+// CartResponseDTO: id, userId, cartItems.
 message CartInfo {
-  string cart_id = 1;
+  string cart_id = 1;   // Cart.id (Integer) as string
   string user_id = 2;
   repeated CartItemInfo items = 3;
-  string total = 4;
 }
 
 message GetCartRequest {
@@ -33,22 +33,11 @@ message GetCartResponse {
   CartInfo cart = 1;
 }
 
-// Product Catalog calls this when frontend requests add-to-cart (frontend does not call Cart directly).
-message AddCartItemRequest {
+message RemoveCartItemsRequest {
   string user_id = 1;
-  string product_id = 2;
-  int32 quantity = 3;
+  repeated string product_ids = 2;
 }
 
-message AddCartItemResponse {
-  string cart_id = 1;
-}
-
-message InvalidateCartRequest {
-  string user_id = 1;
-  repeated string product_ids = 3;
-}
-
-message InvalidateCartResponse {
-  bool invalidated = 1;
+message RemoveCartItemsResponse {
+  bool removed = 1;
 }

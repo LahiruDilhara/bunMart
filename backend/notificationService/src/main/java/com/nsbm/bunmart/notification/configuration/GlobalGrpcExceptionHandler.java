@@ -37,9 +37,15 @@ public class GlobalGrpcExceptionHandler {
         return Status.INTERNAL.withDescription(e.getMessage());
     }
 
+    @GrpcExceptionHandler(NumberFormatException.class)
+    public Status handleNumberFormatException(NumberFormatException e) {
+        log.error("Invalid template_id: {}", e.getMessage());
+        return Status.INVALID_ARGUMENT.withDescription("Invalid template_id: must be a number");
+    }
+
     @GrpcExceptionHandler(Exception.class)
     public Status handleGenericException(Exception e) {
-        log.error("Unexpected gRPC error: {}", e.getMessage());
+        log.error("Unexpected gRPC error: {}", e.getMessage(), e);
         return Status.INTERNAL.withDescription("Internal server error");
     }
 }

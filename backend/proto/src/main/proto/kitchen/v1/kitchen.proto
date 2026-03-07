@@ -7,55 +7,61 @@ import "google/protobuf/timestamp.proto";
 option java_package = "com.nsbm.bunmart.kitchen.v1";
 option java_multiple_files = true;
 
-// KitchenService — production orders. Order calls CreateProductionOrder; Kitchen calls Order.NotifyOrderPrepared when done.
+// Aligned with KitchenOrder / KitchenOrderLine entity and KitchenOrderResponseDTO / KitchenOrderLineDTO.
+// KitchenOrder: id, userId, orderId, status, createdAt, updatedAt, lines.
+// KitchenOrderLine: id, productId, quantity, progress, status.
 service KitchenService {
-  rpc CreateProductionOrder(CreateProductionOrderRequest) returns (CreateProductionOrderResponse);
-  rpc GetProductionOrder(GetProductionOrderRequest) returns (GetProductionOrderResponse);
-  rpc UpdateProductionPhase(UpdateProductionPhaseRequest) returns (UpdateProductionPhaseResponse);
+  rpc CreateKitchenOrder(CreateKitchenOrderRequest) returns (CreateKitchenOrderResponse);
+  rpc GetKitchenOrder(GetKitchenOrderRequest) returns (GetKitchenOrderResponse);
+  rpc UpdateKitchenOrderStatus(UpdateKitchenOrderStatusRequest) returns (UpdateKitchenOrderStatusResponse);
 }
 
-message ProductionOrderLine {
+message KitchenOrderLineInfo {
+  string line_id = 1;
+  string product_id = 2;
+  int32 quantity = 3;
+  int32 progress = 4;
+  string status = 5;
+}
+
+message KitchenOrderInfo {
+  string kitchen_order_id = 1;
+  string user_id = 2;
+  string order_id = 3;
+  string status = 4;
+  repeated KitchenOrderLineInfo lines = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+message CreateKitchenOrderRequest {
+  string user_id = 1;
+  string order_id = 2;
+  repeated KitchenOrderLineInput lines = 3;
+}
+
+message KitchenOrderLineInput {
   string product_id = 1;
   int32 quantity = 2;
 }
 
-message ProductionOrderInfo {
-  string production_order_id = 1;
-  string user_order_id = 2;
-  repeated ProductionOrderLine lines = 3;
-  string phase = 4;  // PREPARING, BAKING, COMPLETED
-  int32 progress_percent = 5;
-  repeated string preparation_image_urls = 6;
-  string notes = 7;
-  google.protobuf.Timestamp created_at = 8;
-  google.protobuf.Timestamp updated_at = 9;
+message CreateKitchenOrderResponse {
+  string kitchen_order_id = 1;
 }
 
-message CreateProductionOrderRequest {
-  string user_order_id = 1;
-  repeated ProductionOrderLine lines = 2;
+message GetKitchenOrderRequest {
+  string kitchen_order_id = 1;
 }
 
-message CreateProductionOrderResponse {
-  string production_order_id = 1;
+message GetKitchenOrderResponse {
+  KitchenOrderInfo order = 1;
 }
 
-message GetProductionOrderRequest {
-  string production_order_id = 1;
+message UpdateKitchenOrderStatusRequest {
+  string kitchen_order_id = 1;
+  string status = 2;
 }
 
-message GetProductionOrderResponse {
-  ProductionOrderInfo order = 1;
-}
-
-message UpdateProductionPhaseRequest {
-  string production_order_id = 1;
-  string phase = 2;
-  int32 progress_percent = 3;
-  repeated string preparation_image_urls = 4;
-  string notes = 5;
-}
-
-message UpdateProductionPhaseResponse {
+message UpdateKitchenOrderStatusResponse {
   bool updated = 1;
 }

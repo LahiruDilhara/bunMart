@@ -3,16 +3,15 @@ package com.nsbm.bunmart.payment.repositories;
 import com.nsbm.bunmart.payment.model.Payment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import java.util.List;
 import java.util.Optional;
 
-// JpaRepository handles all basic database operations for us
-// no need to write any SQL manually - spring generates it at runtime
-// <Payment, String> means Payment is the entity, String is the type of primary key
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, String> {
 
-    // spring sees this method name and auto generates:
-    // SELECT * FROM payments WHERE order_id = ?
-    // we use this when order service asks "did this order get paid?"
-    Optional<Payment> findByOrderId(String orderId);
+    /** All payments for an order (may be multiple e.g. retries). */
+    List<Payment> findByOrderId(String orderId);
+
+    /** Latest payment for an order by creation time; use when a single result is required. */
+    Optional<Payment> findFirstByOrderIdOrderByCreatedAtDesc(String orderId);
 }

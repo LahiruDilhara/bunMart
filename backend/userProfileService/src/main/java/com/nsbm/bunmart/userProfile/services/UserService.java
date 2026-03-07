@@ -42,6 +42,7 @@ public class UserService {
 
         User user = new User();
         user.setEmail(dto.getEmail());
+        user.setPassword("");
         user.setDisplayName(dto.getDisplayName());
         user.setPhone(dto.getPhone());
         user.setRoles(dto.getRoles() != null ? dto.getRoles() : new ArrayList<>());
@@ -61,6 +62,40 @@ public class UserService {
         Integer id = parseId(userId);
         return userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found for id: " + userId));
+    }
+
+    /**
+     * Get existing profile or create a minimal one for the given auth-service user id.
+     * Used when the frontend sends userId (from auth) to load profile; profile service
+     * creates a placeholder profile if none exists yet.
+     */
+    public User getOrCreateProfile(String authUserId) {
+        return userRepository.findByAuthUserId(authUserId)
+                .orElseGet(() -> createPlaceholderProfile(authUserId));
+    }
+
+    private User createPlaceholderProfile(String authUserId) {
+        String placeholderEmail = "user_" + authUserId + "@profile.bunmart.local";
+        if (userRepository.existsByEmail(placeholderEmail)) {
+            return userRepository.findByEmail(placeholderEmail)
+                    .orElseThrow(() -> new UserNotFoundException("User not found for authUserId: " + authUserId));
+        }
+        User user = new User();
+        user.setAuthUserId(authUserId);
+        user.setEmail(placeholderEmail);
+        user.setPassword("");
+        user.setDisplayName("");
+        user.setPhone(null);
+        user.setRoles(new ArrayList<>(List.of("USER")));
+        user.setActive(true);
+        user.setCreatedAt(Instant.now());
+        user.setUpdatedAt(Instant.now());
+        try {
+            return userRepository.save(user);
+        } catch (Exception e) {
+            log.error("Failed to create placeholder profile: {}", e.getMessage());
+            throw new UserNotSavedException("Failed to create profile for user: " + authUserId);
+        }
     }
 
     public User updateUser(String userId, UpdateUserRequestDTO dto) {

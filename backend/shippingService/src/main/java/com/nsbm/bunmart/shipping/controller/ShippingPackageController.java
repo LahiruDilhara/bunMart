@@ -1,5 +1,6 @@
 package com.nsbm.bunmart.shipping.controller;
 
+import com.nsbm.bunmart.shipping.dto.AssignDriverRequestDTO;
 import com.nsbm.bunmart.shipping.dto.CreateShippingPackageRequestDTO;
 import com.nsbm.bunmart.shipping.dto.ShippingPackageResponseDTO;
 import com.nsbm.bunmart.shipping.dto.UpdateProgressRequestDTO;
@@ -28,14 +29,7 @@ public class ShippingPackageController {
 
     @PostMapping
     public ResponseEntity<ShippingPackageResponseDTO> addShippingPackage(@Valid @RequestBody CreateShippingPackageRequestDTO dto) {
-        ShippingPackage pkg = shippingPackageService.createShippingPackage(
-                dto.getWeight(),
-                dto.getDestinationAddress(),
-                dto.getSourceAddress(),
-                dto.getTotalPrice(),
-                dto.getOrderId(),
-                dto.getDriverId()
-        );
+        ShippingPackage pkg = shippingPackageService.createShippingPackage(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(shippingMapper.toShippingPackageResponseDTO(pkg));
     }
 
@@ -46,17 +40,32 @@ public class ShippingPackageController {
                 .collect(Collectors.toList());
     }
 
+    /** Declare path segments like "by-order", "by-driver" before generic /{id} so they are matched correctly. */
+    @GetMapping("/by-order/{orderId}")
+    public List<ShippingPackageResponseDTO> getByOrderId(@PathVariable String orderId) {
+        return shippingPackageService.getShippingPackagesByOrderId(orderId).stream()
+                .map(shippingMapper::toShippingPackageResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @GetMapping("/by-driver/{driverId}")
+    public List<ShippingPackageResponseDTO> getByDriverId(@PathVariable Integer driverId) {
+        return shippingPackageService.getShippingPackagesByDriverId(driverId).stream()
+                .map(shippingMapper::toShippingPackageResponseDTO)
+                .collect(Collectors.toList());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ShippingPackageResponseDTO> getShippingPackage(@PathVariable String id) {
         ShippingPackage pkg = shippingPackageService.getShippingPackage(id);
         return ResponseEntity.ok(shippingMapper.toShippingPackageResponseDTO(pkg));
     }
 
-    @GetMapping("/by-order/{orderId}")
-    public List<ShippingPackageResponseDTO> getByOrderId(@PathVariable String orderId) {
-        return shippingPackageService.getShippingPackagesByOrderId(orderId).stream()
-                .map(shippingMapper::toShippingPackageResponseDTO)
-                .collect(Collectors.toList());
+    @PatchMapping("/{id}/driver")
+    public ResponseEntity<ShippingPackageResponseDTO> assignDriver(@PathVariable String id,
+                                                                   @Valid @RequestBody AssignDriverRequestDTO dto) {
+        ShippingPackage pkg = shippingPackageService.assignDriver(id, dto.getDriverId());
+        return ResponseEntity.ok(shippingMapper.toShippingPackageResponseDTO(pkg));
     }
 
     @PatchMapping("/{id}/progress")

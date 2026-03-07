@@ -7,7 +7,7 @@ import "google/protobuf/timestamp.proto";
 option java_package = "com.nsbm.bunmart.payment.v1";
 option java_multiple_files = true;
 
-// PaymentService — payment intents (Stripe). Order calls CreatePaymentIntent; Payment may call Notification.
+// Aligned with Payment entity / PaymentResponseDTO. Payment: paymentId, orderId, userId, amount, currencyCode, status, createdAt, updatedAt.
 service PaymentService {
   rpc CreatePaymentIntent(CreatePaymentIntentRequest) returns (CreatePaymentIntentResponse);
   rpc GetPaymentIntent(GetPaymentIntentRequest) returns (GetPaymentIntentResponse);
@@ -46,9 +46,13 @@ message GetPaymentStatusRequest {
 
 message GetPaymentStatusResponse {
   string payment_id = 1;
-  string status = 2;
-  string order_id = 3;
-  google.protobuf.Timestamp updated_at = 4;
+  string order_id = 2;
+  string user_id = 3;
+  string amount = 4;
+  string currency_code = 5;
+  string status = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
 }
 
 message ConfirmPaymentRequest {

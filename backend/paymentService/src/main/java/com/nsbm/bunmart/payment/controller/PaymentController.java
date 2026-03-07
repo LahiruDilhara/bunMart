@@ -1,6 +1,7 @@
 package com.nsbm.bunmart.payment.controller;
 
 import com.nsbm.bunmart.payment.dto.ArchivePaymentResponseDTO;
+import com.nsbm.bunmart.payment.dto.CreatePaymentForOrderRequestDTO;
 import com.nsbm.bunmart.payment.dto.CreatePaymentRequestDTO;
 import com.nsbm.bunmart.payment.dto.PaymentResponseDTO;
 import com.nsbm.bunmart.payment.dto.StripeCheckoutResponseDTO;
@@ -35,6 +36,17 @@ public class PaymentController {
                 request.getMetadata() != null ? request.getMetadata() : Map.of()
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(paymentMapper.paymentToPaymentResponseDTO(payment));
+    }
+
+    /**
+     * Create payment for an order by order ID. Fetches order details (total, currency) from the order service via gRPC, then creates the payment and returns the Stripe checkout URL.
+     * Frontend sends only orderId and userId (e.g. from auth) and can redirect the user to the returned URL to pay.
+     */
+    @PostMapping("/create-for-order")
+    public ResponseEntity<StripeCheckoutResponseDTO> createPaymentForOrder(@Valid @RequestBody CreatePaymentForOrderRequestDTO request) throws StripeException {
+        Payment payment = paymentService.createPaymentForOrder(request.getOrderId(), request.getUserId());
+        String redirectUrl = stripeService.createCheckoutSessionUrl(payment);
+        return ResponseEntity.status(HttpStatus.CREATED).body(new StripeCheckoutResponseDTO(redirectUrl));
     }
 
     @GetMapping("/{paymentId}")

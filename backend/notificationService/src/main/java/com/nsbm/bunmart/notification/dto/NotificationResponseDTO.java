@@ -24,4 +24,5 @@ public class NotificationResponseDTO {
     private String status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private boolean read;
 }

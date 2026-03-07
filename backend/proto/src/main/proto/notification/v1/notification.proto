@@ -2,25 +2,31 @@ syntax = "proto3";
 
 package bunmart.notification.v1;
 
+import "google/protobuf/timestamp.proto";
+
 option java_package = "com.nsbm.bunmart.notification.v1";
 option java_multiple_files = true;
 
-// NotificationService — send notifications. Called by Order, Payment, Shipping, User Management.
+// Aligned with Notification entity / SendNotificationRequestDTO / NotificationResponseDTO.
+// Send notification to a specified user.
 service NotificationService {
   rpc SendNotification(SendNotificationRequest) returns (SendNotificationResponse);
 }
 
+// Notification: userId, channel, templateId, templateData, subject, referenceType, referenceId. Response adds id, status, body, timestamps.
 message SendNotificationRequest {
   string user_id = 1;
-  string channel = 2;  // EMAIL, SMS, IN_APP
+  string channel = 2;   // EMAIL, SMS, IN_APP
   string template_id = 3;
   map<string, string> template_data = 4;
   string subject = 5;
-  string reference_type = 6; // Which service sends this
-  string reference_id = 7; // in that service's reference id
+  string reference_type = 6;
+  string reference_id = 7;
 }
 
 message SendNotificationResponse {
   string notification_id = 1;
-  string status = 2;  // SENT, QUEUED, FAILED
+  string status = 2;    // SENT, QUEUED, FAILED
+  string body = 3;
+  google.protobuf.Timestamp created_at = 4;
 }

@@ -7,7 +7,8 @@ import "google/protobuf/timestamp.proto";
 option java_package = "com.nsbm.bunmart.review.v1";
 option java_multiple_files = true;
 
-// ReviewService — product reviews and ratings. Consumed by Product Catalog or frontend.
+// Aligned with Review entity / ReviewResponseDTO. Review: id, productId, userId, comment, likeCount, createdAt, updatedAt.
+// No rating or status field in entity; GetProductRating can be derived (e.g. from like counts or separate aggregate).
 service ReviewService {
   rpc GetReviews(GetReviewsRequest) returns (GetReviewsResponse);
   rpc GetProductRating(GetProductRatingRequest) returns (GetProductRatingResponse);
@@ -17,10 +18,10 @@ message ReviewInfo {
   string review_id = 1;
   string product_id = 2;
   string user_id = 3;
-  int32 rating = 4;
-  string comment = 5;
-  string status = 6;
-  google.protobuf.Timestamp created_at = 7;
+  string comment = 4;
+  int32 like_count = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
 }
 
 message GetReviewsRequest {

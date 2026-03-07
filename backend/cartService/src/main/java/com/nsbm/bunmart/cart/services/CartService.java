@@ -4,20 +4,13 @@ import com.nsbm.bunmart.cart.errors.*;
 import com.nsbm.bunmart.cart.model.Cart;
 import com.nsbm.bunmart.cart.model.CartItem;
 import com.nsbm.bunmart.cart.repositories.CartRepository;
-import com.nsbm.bunmart.kitchen.v1.KitchenServiceGrpc;
-import com.nsbm.bunmart.order.v1.CreateOrderIntentRequest;
-import com.nsbm.bunmart.order.v1.OrderServiceGrpc;
-import io.grpc.StatusRuntimeException;
 import lombok.extern.slf4j.Slf4j;
-import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -25,9 +18,6 @@ import java.util.stream.Collectors;
 public class CartService {
 
     private final CartRepository cartRepository;
-
-    @GrpcClient("orderService")
-    private OrderServiceGrpc.OrderServiceBlockingStub orderStub;
 
     public CartService(CartRepository cartRepository){
         this.cartRepository = cartRepository;
@@ -137,37 +127,5 @@ public class CartService {
             log.error(e.getMessage());
             throw new CartNotSavedException("The cart not saved");
         }
-    }
-
-    public String checkout(String userId, List<String> productIds) throws CartItemNotExistsException, OrderServiceUnavailableException, CartNotSavedException {
-        Cart cart = getCart(userId);
-        List<CartItem> cartItems = cart.getCartItems();
-        if(!cartItems.stream().anyMatch(cartItem -> productIds.contains(cartItem.getProductId()))){
-            throw new CartItemNotExistsException("The cart item does not exist");
-        }
-        List<CartItem> checkoutItems = cartItems.stream().filter(cartItem -> productIds.contains(cartItem.getProductId())).collect(Collectors.toCollection(ArrayList::new));
-        List<CartItem> remainItems =  cartItems.stream().filter(cartItem -> !productIds.contains(cartItem.getProductId())).collect(Collectors.toCollection(ArrayList::new));
-
-        List<CreateOrderIntentRequest.CartLine> cartLines = checkoutItems.stream().map(item -> CreateOrderIntentRequest.CartLine.newBuilder().setProductId(item.getProductId()).setQuantity(item.getQuantity()).build()).collect(Collectors.toCollection(ArrayList::new));
-        CreateOrderIntentRequest createOrderIntentRequest = CreateOrderIntentRequest.newBuilder().setUserId(userId).setCartId(String.valueOf(cart.getId())).addAllItems(cartLines).build();
-
-        String orderId = null;
-        try{
-            orderId = orderStub.createOrderIntent(createOrderIntentRequest).getOrderId();
-        }
-        catch (StatusRuntimeException e){
-            throw new OrderServiceUnavailableException("Order service unavailable");
-        }
-
-        cart.getCartItems().clear();
-        cart.getCartItems().addAll(remainItems);
-
-        try{
-            cartRepository.save(cart);
-        }
-        catch (DataAccessException e){
-            throw new CartNotSavedException("Error while saving cart for id: " + userId);
-        }
-        return orderId;
     }
 }

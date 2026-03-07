@@ -46,6 +46,10 @@ public class Notification {
     @Column(nullable = false)
     private String status; // SENT, QUEUED, FAILED
 
+    /** For IN_APP: whether the user has read this notification. */
+    @Column(nullable = false, columnDefinition = "boolean not null default false")
+    private boolean read = false;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

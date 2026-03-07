@@ -28,6 +28,17 @@ public class UserController {
 
     // ==================== USER ENDPOINTS ====================
 
+    /**
+     * Get or create profile for the given auth-service userId.
+     * Frontend sends userId (from auth); profile service returns existing profile or creates a placeholder.
+     */
+    @GetMapping("/profile")
+    public ResponseEntity<ProfileResponseDTO> getOrCreateProfile(@RequestParam String userId) {
+        User user = userService.getOrCreateProfile(userId);
+        List<Address> addresses = userService.getUserAddresses(String.valueOf(user.getId()));
+        return ResponseEntity.ok(userRestMapper.userToProfileResponseDTO(user, addresses));
+    }
+
     @PostMapping
     public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody CreateUserRequestDTO dto) {
         User user = userService.createUser(dto);

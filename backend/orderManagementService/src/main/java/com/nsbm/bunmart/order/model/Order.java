@@ -23,6 +23,7 @@ public class Order {
     private String subtotal;
     private String discountTotal;
     private String shippingTotal;
+    private String taxTotal;
     private String total;
     private String currencyCode;
 
@@ -93,6 +94,14 @@ public class Order {
 
     public void setShippingTotal(String shippingTotal) {
         this.shippingTotal = shippingTotal;
+    }
+
+    public String getTaxTotal() {
+        return taxTotal;
+    }
+
+    public void setTaxTotal(String taxTotal) {
+        this.taxTotal = taxTotal;
     }
 
     public String getTotal() {

@@ -23,6 +23,7 @@ public class NotificationMapper {
         dto.setReferenceType(notification.getReferenceType());
         dto.setReferenceId(notification.getReferenceId());
         dto.setStatus(notification.getStatus());
+        dto.setRead(notification.isRead());
         dto.setCreatedAt(notification.getCreatedAt());
         dto.setUpdatedAt(notification.getUpdatedAt());
         return dto;

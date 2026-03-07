@@ -27,7 +27,7 @@ public class PricingCalculationService {
     private final DiscountService discountService;
     private final CouponRepository couponRepository;
 
-    public CalculatePriceResponseDTO calculate(List<String> productIds, List<Integer> quantities) {
+    public CalculatePriceResponseDTO calculate(List<String> productIds, List<Integer> quantities, String couponCode) {
         if (productIds == null || quantities == null || productIds.size() != quantities.size()) {
             throw new IllegalArgumentException("productIds and quantities must be same size");
         }
@@ -78,8 +78,9 @@ public class PricingCalculationService {
             }
 
             BigDecimal lineAfterDiscount = lineSubtotal.subtract(lineDiscount).setScale(SCALE, ROUNDING);
+            // Tax is stored as percentage (e.g. 20 = 20%), so divide by 100 when applying
             BigDecimal taxRate = product.getTax() != null ? product.getTax() : BigDecimal.ZERO;
-            BigDecimal lineTax = lineAfterDiscount.multiply(taxRate).setScale(SCALE, ROUNDING);
+            BigDecimal lineTax = lineAfterDiscount.multiply(taxRate).divide(BigDecimal.valueOf(100), SCALE, ROUNDING);
             BigDecimal lineShipping = (product.getShippingCost() != null ? product.getShippingCost() : BigDecimal.ZERO)
                     .multiply(BigDecimal.valueOf(qty)).setScale(SCALE, ROUNDING);
             BigDecimal lineTotal = lineAfterDiscount.add(lineTax).add(lineShipping).setScale(SCALE, ROUNDING);
@@ -101,6 +102,27 @@ public class PricingCalculationService {
                     lineTotal,
                     discountDesc.toString()
             ));
+        }
+
+        // Order-level coupon (productId == null): apply after line items
+        if (couponCode != null && !couponCode.isBlank()) {
+            var orderCouponOpt = couponRepository.findValidCouponByCode(couponCode.trim(), LocalDateTime.now());
+            if (orderCouponOpt.isPresent()) {
+                Coupon coupon = orderCouponOpt.get();
+                if (coupon.getProductId() == null || coupon.getProductId().isBlank()) {
+                    BigDecimal afterProductDiscounts = subtotal.subtract(discountTotal).setScale(SCALE, ROUNDING);
+                    BigDecimal minOrder = coupon.getMinOrderAmount() != null ? coupon.getMinOrderAmount() : BigDecimal.ZERO;
+                    if (afterProductDiscounts.compareTo(minOrder) >= 0) {
+                        BigDecimal orderCouponAmount = BigDecimal.ZERO;
+                        if ("PERCENT".equalsIgnoreCase(coupon.getType()) && coupon.getValue() != null) {
+                            orderCouponAmount = afterProductDiscounts.multiply(coupon.getValue()).divide(BigDecimal.valueOf(100), SCALE, ROUNDING);
+                        } else if ("FIXED".equalsIgnoreCase(coupon.getType()) && coupon.getValue() != null) {
+                            orderCouponAmount = coupon.getValue().min(afterProductDiscounts).setScale(SCALE, ROUNDING);
+                        }
+                        discountTotal = discountTotal.add(orderCouponAmount);
+                    }
+                }
+            }
         }
 
         BigDecimal total = subtotal.subtract(discountTotal).add(taxTotal).add(shippingTotal).setScale(SCALE, ROUNDING);

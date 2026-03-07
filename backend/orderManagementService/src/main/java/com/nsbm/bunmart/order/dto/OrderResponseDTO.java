@@ -10,6 +10,7 @@ public class OrderResponseDTO {
     private String subtotal;
     private String discountTotal;
     private String shippingTotal;
+    private String taxTotal;
     private String total;
     private String currencyCode;
     private String shippingAddress;
@@ -69,6 +70,14 @@ public class OrderResponseDTO {
 
     public void setShippingTotal(String shippingTotal) {
         this.shippingTotal = shippingTotal;
+    }
+
+    public String getTaxTotal() {
+        return taxTotal;
+    }
+
+    public void setTaxTotal(String taxTotal) {
+        this.taxTotal = taxTotal;
     }
 
     public String getTotal() {

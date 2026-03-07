@@ -39,7 +39,7 @@ dependencies {
     implementation 'jakarta.annotation:jakarta.annotation-api:3.0.0'
 
     // Protobuf Package
-    implementation "com.nsbm.bunmart:bunmart-proto:0.0.1"
+    implementation "com.nsbm.bunmart:bunmart-proto:0.0.2"
 
     // Annotation API
     implementation 'jakarta.annotation:jakarta.annotation-api:3.0.0'

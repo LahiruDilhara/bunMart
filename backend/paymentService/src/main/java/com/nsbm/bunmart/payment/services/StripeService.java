@@ -69,8 +69,8 @@ public class StripeService {
 
         SessionCreateParams params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl(stripeProperties.getSuccessUrl() + "?session_id={CHECKOUT_SESSION_ID}&payment_id=" + payment.getPaymentId())
-                .setCancelUrl(stripeProperties.getCancelUrl() + "?payment_id=" + payment.getPaymentId())
+                .setSuccessUrl(stripeProperties.getSuccessUrl() + "?session_id={CHECKOUT_SESSION_ID}&payment_id=" + payment.getPaymentId() + "&order_id=" + payment.getOrderId())
+                .setCancelUrl(stripeProperties.getCancelUrl() + "?payment_id=" + payment.getPaymentId() + "&order_id=" + payment.getOrderId())
                 .setPaymentIntentData(
                         SessionCreateParams.PaymentIntentData.builder()
                                 .putMetadata("payment_id", payment.getPaymentId())

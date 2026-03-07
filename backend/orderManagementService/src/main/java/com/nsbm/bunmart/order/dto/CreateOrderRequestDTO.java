@@ -26,6 +26,8 @@ public class CreateOrderRequestDTO {
 
     private String shippingTotal;
 
+    private String taxTotal;
+
     @NotBlank(message = "Total is required")
     private String total;
 
@@ -80,6 +82,14 @@ public class CreateOrderRequestDTO {
 
     public void setShippingTotal(String shippingTotal) {
         this.shippingTotal = shippingTotal;
+    }
+
+    public String getTaxTotal() {
+        return taxTotal;
+    }
+
+    public void setTaxTotal(String taxTotal) {
+        this.taxTotal = taxTotal;
     }
 
     public String getTotal() {

@@ -41,6 +41,12 @@ public class GlobalRestExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponseDTO(e.getMessage()));
     }
 
+    @ExceptionHandler(DeliveryAlreadyCompletedException.class)
+    public ResponseEntity<ErrorResponseDTO> handleDeliveryAlreadyCompleted(DeliveryAlreadyCompletedException e) {
+        log.warn(e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponseDTO(e.getMessage()));
+    }
+
     @ExceptionHandler({
             MethodArgumentNotValidException.class,
             ConstraintViolationException.class,

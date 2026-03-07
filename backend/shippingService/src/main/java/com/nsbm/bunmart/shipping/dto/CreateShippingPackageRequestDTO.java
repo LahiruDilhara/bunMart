@@ -31,5 +31,8 @@ public class CreateShippingPackageRequestDTO {
     @NotBlank(message = "Order ID is required")
     private String orderId;
 
+    /** User ID for sending delivery notification; optional but recommended. */
+    private String userId;
+
     private Integer driverId;
 }

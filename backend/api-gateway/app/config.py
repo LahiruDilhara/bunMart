@@ -7,6 +7,7 @@ from pydantic import AnyHttpUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 SERVICE_NAMES = (
+    "auth",
     "cart",
     "kitchen",
     "notification",
@@ -47,33 +48,36 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    gateway_name: str = "bunmart-api-gateway"
-    gateway_timeout_seconds: float = 30.0
+    gateway_name: str
+    gateway_timeout_seconds: float
 
-    # Prefix (path on gateway) and URL (backend) per service
-    cart_prefix: str = "/cart"
-    cart_url: AnyHttpUrl = "http://localhost:8082"
-    kitchen_prefix: str = "/kitchen"
-    kitchen_url: AnyHttpUrl = "http://localhost:8085"
-    notification_prefix: str = "/notification"
-    notification_url: AnyHttpUrl = "http://localhost:8086"
-    order_prefix: str = "/order"
-    order_url: AnyHttpUrl = "http://localhost:8083"
-    payment_prefix: str = "/payment"
-    payment_url: AnyHttpUrl = "http://localhost:8084"
-    pricing_prefix: str = "/pricing"
-    pricing_url: AnyHttpUrl = "http://localhost:8088"
-    product_prefix: str = "/product"
-    product_url: AnyHttpUrl = "http://localhost:8081"
-    review_prefix: str = "/review"
-    review_url: AnyHttpUrl = "http://localhost:8089"
-    shipping_prefix: str = "/shipping"
-    shipping_url: AnyHttpUrl = "http://localhost:8087"
-    user_prefix: str = "/user"
-    user_url: AnyHttpUrl = "http://localhost:8090"
+    auth_prefix: str
+    auth_url: AnyHttpUrl
+
+    cart_prefix: str
+    cart_url: AnyHttpUrl
+    kitchen_prefix: str
+    kitchen_url: AnyHttpUrl
+    notification_prefix: str
+    notification_url: AnyHttpUrl
+    order_prefix: str
+    order_url: AnyHttpUrl
+    payment_prefix: str
+    payment_url: AnyHttpUrl
+    pricing_prefix: str
+    pricing_url: AnyHttpUrl
+    product_prefix: str
+    product_url: AnyHttpUrl
+    review_prefix: str
+    review_url: AnyHttpUrl
+    shipping_prefix: str
+    shipping_url: AnyHttpUrl
+    user_prefix: str
+    user_url: AnyHttpUrl
 
     def service_routes(self) -> list[ServiceRoute]:
         routes = [
+            ServiceRoute("auth", _norm_prefix(self.auth_prefix), str(self.auth_url)),
             ServiceRoute("cart", _norm_prefix(self.cart_prefix), str(self.cart_url)),
             ServiceRoute("kitchen", _norm_prefix(self.kitchen_prefix), str(self.kitchen_url)),
             ServiceRoute(

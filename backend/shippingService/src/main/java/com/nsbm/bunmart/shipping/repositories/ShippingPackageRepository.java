@@ -11,4 +11,5 @@ import java.util.List;
 public interface ShippingPackageRepository extends JpaRepository<ShippingPackage, String> {
     List<ShippingPackage> findByOrderId(String orderId);
     List<ShippingPackage> findByStatus(ShippingPackageStatus status);
+    List<ShippingPackage> findByDriver_Id(Integer driverId);
 }

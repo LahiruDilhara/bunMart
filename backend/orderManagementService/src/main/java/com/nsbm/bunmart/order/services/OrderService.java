@@ -1,13 +1,19 @@
 package com.nsbm.bunmart.order.services;
 
+import com.nsbm.bunmart.cart.v1.CartServiceGrpc;
+import com.nsbm.bunmart.cart.v1.RemoveCartItemsRequest;
+import com.nsbm.bunmart.notification.v1.NotificationServiceGrpc;
+import com.nsbm.bunmart.notification.v1.SendNotificationRequest;
 import com.nsbm.bunmart.order.dto.CreateOrderRequestDTO;
 import com.nsbm.bunmart.order.dto.OrderProductDTO;
+import com.nsbm.bunmart.order.dto.UpdateOrderRequestDTO;
 import com.nsbm.bunmart.order.errors.*;
 import com.nsbm.bunmart.order.model.Order;
 import com.nsbm.bunmart.order.model.OrderProduct;
 import com.nsbm.bunmart.order.model.OrderStatus;
 import com.nsbm.bunmart.order.repositories.OrderRepository;
 import lombok.extern.slf4j.Slf4j;
+import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,6 +28,12 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class OrderService {
+
+    @GrpcClient("cartService")
+    private CartServiceGrpc.CartServiceBlockingStub cartServiceStub;
+
+    @GrpcClient("notificationService")
+    private NotificationServiceGrpc.NotificationServiceBlockingStub notificationServiceStub;
 
     private final OrderRepository orderRepository;
 
@@ -40,6 +52,7 @@ public class OrderService {
         order.setSubtotal(request.getSubtotal());
         order.setDiscountTotal(request.getDiscountTotal() != null ? request.getDiscountTotal() : "0");
         order.setShippingTotal(request.getShippingTotal() != null ? request.getShippingTotal() : "0");
+        order.setTaxTotal(request.getTaxTotal() != null ? request.getTaxTotal() : "0");
         order.setTotal(request.getTotal());
         order.setCurrencyCode(request.getCurrencyCode() != null ? request.getCurrencyCode() : "USD");
 
@@ -53,16 +66,68 @@ public class OrderService {
         order.setProducts(orderProducts);
 
         try {
-            return orderRepository.save(order);
+            Order saved = orderRepository.save(order);
+            removeOrderedItemsFromCart(saved.getUserId(), saved.getProducts().stream()
+                    .map(OrderProduct::getProductId)
+                    .collect(Collectors.toList()));
+            return saved;
         } catch (DataAccessException e) {
             log.error("Failed to save order: {}", e.getMessage());
             throw new OrderNotSavedException("Order could not be saved");
         }
     }
 
+    /**
+     * Calls cart service via gRPC to remove the ordered product IDs from the user's cart.
+     * Best-effort: failures are logged but do not fail order creation.
+     */
+    private void removeOrderedItemsFromCart(String userId, List<String> productIds) {
+        if (productIds == null || productIds.isEmpty()) return;
+        try {
+            RemoveCartItemsRequest request = RemoveCartItemsRequest.newBuilder()
+                    .setUserId(userId)
+                    .addAllProductIds(productIds)
+                    .build();
+            cartServiceStub.removeCartItems(request);
+            log.info("Removed {} product(s) from cart for user {}", productIds.size(), userId);
+        } catch (Exception e) {
+            log.warn("Failed to remove ordered items from cart for user {}: {}", userId, e.getMessage());
+        }
+    }
+
+    private void notifyOrderShipped(String userId, String orderId) {
+        try {
+            SendNotificationRequest req = SendNotificationRequest.newBuilder()
+                    .setUserId(userId)
+                    .setChannel("IN_APP")
+                    .setTemplateId("1")
+                    .putTemplateData("title", "Order shipped")
+                    .putTemplateData("message", "Your order #" + orderId + " has been shipped.")
+                    .setSubject("Order shipped")
+                    .setReferenceType("ORDER")
+                    .setReferenceId(orderId != null ? orderId : "")
+                    .build();
+            notificationServiceStub.sendNotification(req);
+            log.info("Notified user {} that order {} has been shipped", userId, orderId);
+        } catch (Exception e) {
+            log.warn("Failed to send order-shipped notification: {}", e.getMessage());
+        }
+    }
+
     public Order getOrder(String id) {
         return orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException("Order not found for id: " + id));
+    }
+
+    /**
+     * Returns the order if it exists and belongs to the given user (for gRPC GetOrder).
+     */
+    public Order getOrderForUser(String userId, String orderId) {
+        Order order = getOrder(orderId);
+        if (!order.getUserId().equals(userId)) {
+            throw new OrderNotFoundException("Order not found for id: " + orderId);
+        }
+        return order;
     }
 
     public List<Order> getOrdersByUser(String userId) {
@@ -149,7 +214,11 @@ public class OrderService {
         }
         order.setStatus(normalizeStatus(newStatus));
         order.setUpdatedAt(java.time.LocalDateTime.now());
-        return saveOrThrow(order);
+        Order saved = saveOrThrow(order);
+        if (OrderStatus.SHIPPED.getValue().equals(saved.getStatus())) {
+            notifyOrderShipped(saved.getUserId(), saved.getId());
+        }
+        return saved;
     }
 
     public Order setShipmentId(String id, String shipmentId) {
@@ -162,6 +231,35 @@ public class OrderService {
     public Order setPaymentId(String id, String paymentId) {
         Order order = getOrder(id);
         order.setPaymentId(paymentId);
+        order.setUpdatedAt(java.time.LocalDateTime.now());
+        return saveOrThrow(order);
+    }
+
+    /**
+     * Updates order with only the non-empty fields from the DTO (e.g. from gRPC UpdateOrder).
+     * Validates status via OrderStatus; shipping address only if order is in an updatable state.
+     */
+    public Order updateOrder(String orderId, String userId, UpdateOrderRequestDTO dto) {
+        Order order = getOrderForUser(userId, orderId);
+        if (dto.getStatus() != null && !dto.getStatus().isBlank()) {
+            if (!OrderStatus.isValid(dto.getStatus())) {
+                throw new InvalidOrderStateException("Invalid order status: " + dto.getStatus());
+            }
+            order.setStatus(normalizeStatus(dto.getStatus()));
+        }
+        if (dto.getPaymentId() != null && !dto.getPaymentId().isBlank()) {
+            order.setPaymentId(dto.getPaymentId());
+        }
+        if (dto.getShipmentId() != null && !dto.getShipmentId().isBlank()) {
+            order.setShipmentId(dto.getShipmentId());
+        }
+        if (dto.getShippingAddress() != null && !dto.getShippingAddress().isBlank()) {
+            if (!OrderStatus.canUpdateShippingAddress(order.getStatus())) {
+                throw new InvalidOrderStateException(
+                        "Shipping address can only be updated when order is pending or await_payment. Current: " + order.getStatus());
+            }
+            order.setShippingAddress(dto.getShippingAddress());
+        }
         order.setUpdatedAt(java.time.LocalDateTime.now());
         return saveOrThrow(order);
     }

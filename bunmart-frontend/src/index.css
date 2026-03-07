@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #ffffff;
+  --foreground: #181511;
+  --primary: #f2930d;
+  --primary-hover: #d9830b;
+  --background-light: #f8f7f5;
+  --background-dark: #221b10;
+  --muted: #8a7960;
+  --surface-dark: #2d2417;
+  --surface-darker: #3d3222;
+}
+
+@theme inline {
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-background-light: var(--background-light);
+  --color-background-dark: var(--background-dark);
+  --color-muted: var(--muted);
+  --color-surface-dark: var(--surface-dark);
+  --color-surface-darker: var(--surface-darker);
+  --font-display: "Plus Jakarta Sans", "Noto Sans", sans-serif;
+}
+
+.dark {
+  --background: #221b10;
+  --foreground: #ededed;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Plus Jakarta Sans", "Noto Sans", sans-serif;
+  min-height: 100vh;
+}
+
+.layout-container {
+  pointer-events: auto;
+}
