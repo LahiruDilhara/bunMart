@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
  * Handles Stripe webhooks (checkout.session.completed, payment_intent.succeeded) to confirm payments.
  */
 @RestController
-@RequestMapping("/api/v1/stripe")
+@RequestMapping("/api/v1/payments/stripe")
 @RequiredArgsConstructor
 @Slf4j
 public class StripeWebhookController {
